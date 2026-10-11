@@ -189,10 +189,69 @@ const exSets=[
 ];
 SETS.unshift(...exSets);
 
-const ORDER=['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
+// ---------- sets H: חזרה למבדק (בעיות מילוליות מהלוח) ----------
+const CLUBS=['אוריגמי','כדורגל','תפירה','שחמט','ציור','תיאטרון','ג\'ודו','מוזיקה'];
+const NAMES=['דנה','נועה','מיכל','שירה','יעל','תמר'];
+const BH={
+gumPart(R,lv){const nm=R.pick(NAMES),th=R.pick(['מסטיקים','סוכריות','מדבקות','גולות','קלפים']);let d,n,k;
+ if(lv===0){d=R.pick([2,4,5,10]);n=1;k=R.ri(2,6)}else if(lv===1){d=R.pick([3,4,5,6]);n=R.ri(2,d-1);k=R.ri(3,8)}else{d=R.pick([8,9,6,10,12]);n=R.ri(2,d-1);k=R.ri(2,5)}
+ const q=d*k,r=k*n;
+ return num('ל'+nm+' יש '+q+' '+th+'. היא נתנה לחברה '+F(n,d)+' מהם. כמה '+th+' קיבלה החברה?',r,'קודם מחלקים את '+q+' ב-'+d+' (כמה יש בכל חלק), אחר כך מכפילים ב-'+n+'.',M(q+' ÷ '+d+' = '+k)+(n>1?' ואז '+M(k+' × '+n+' = '+r):'')+'. החברה קיבלה '+r+'.')},
+gumRest(R,lv){const nm=R.pick(NAMES),th=R.pick(['מסטיקים','סוכריות','מדבקות','גולות','קלפים']);let d,n,k;
+ if(lv===0){d=R.pick([2,4,5]);n=1;k=R.ri(3,7)}else if(lv===1){d=R.pick([3,4,5,6]);n=R.ri(2,d-1);k=R.ri(3,8)}else{d=R.pick([8,9,10,12]);n=R.ri(2,d-1);k=R.ri(2,5)}
+ const q=d*k,r=k*n;
+ return num('ל'+nm+' יש '+q+' '+th+'. היא נתנה לחברה '+F(n,d)+' מהם. כמה '+th+' נשארו לה?',q-r,'קודם מוצאים כמה נתנה: מחלקים ב-'+d+' ומכפילים ב-'+n+'. אחר כך מחסרים מהכמות כולה.',M(q+' ÷ '+d+' = '+k)+(n>1?' ואז '+M(k+' × '+n+' = '+r):'')+'. נתנה '+r+'. נשארו '+M(q+' - '+r+' = '+(q-r))+'.')},
+clubOne(R,lv){const N=R.pick(lv?[24,36,48,60]:[12,20,24,30]);const ds=[2,3,4,5,6,8,9,10,12].filter(d=>N%d===0&&(lv||d<=6));const d=R.pick(ds);const n=lv?R.ri(1,Math.min(3,d-1)):1;const c=R.pick(CLUBS),r=N/d*n;
+ return num('בכיתה '+N+' תלמידים. '+F(n,d)+' מהם משתתפים בחוג '+c+'. כמה תלמידים משתתפים בחוג?',r,'מחלקים את מספר התלמידים ב-'+d+' ומכפילים ב-'+n+'.',M(N+' ÷ '+d+' = '+N/d)+(n>1?' ואז '+M(N/d+' × '+n+' = '+r):'')+'. '+r+' תלמידים.')},
+clubKids(R,lv,k){const N=R.pick([24,36,48,60]);
+ for(let t=0;t<500;t++){const ds=R.shuffle([2,3,4,5,6,8,9,10,12].filter(d=>N%d===0));const pick=ds.slice(0,k);const ns=pick.map(d=>R.ri(1,Math.min(2,d-1)));const cnt=pick.map((d,i)=>N/d*ns[i]);const tot=cnt.reduce((a,b)=>a+b,0);
+  if(tot<=N-3&&tot>=N/3)return{N,pick,ns,cnt,tot,c:R.shuffle(CLUBS).slice(0,k)}}
+ return{N:36,pick:[9,4,3].slice(0,k),ns:[2,1,1].slice(0,k),cnt:[8,9,12].slice(0,k),tot:[8,17,29][k-1],c:['אוריגמי','כדורגל','תפירה'].slice(0,k)}},
+clubNot(R,lv,k){const o=BH.clubKids(R,lv,k);const txt=o.pick.map((d,i)=>F(o.ns[i],d)+' בחוג '+o.c[i]).join(k===2?' ו-':', ').replace(/, ([^,]*)$/,' ו-$1');
+ const steps=o.pick.map((d,i)=>M(o.N+' ÷ '+d+' × '+o.ns[i]+' = '+o.cnt[i])).join(', ');
+ return num('בכיתה '+o.N+' תלמידים. '+txt+'. כל תלמיד משתתף בחוג אחד לכל היותר. כמה תלמידים לא רשומים לאף חוג?',o.N-o.tot,'קודם מוצאים כמה תלמידים יש בכל חוג. אחר כך מחברים אותם, ומחסרים ממספר התלמידים בכיתה.','בכל חוג: '+steps+'. ביחד '+M(o.cnt.join(' + ')+' = '+o.tot)+'. לא רשומים: '+M(o.N+' - '+o.tot+' = '+(o.N-o.tot))+'.')},
+clubNot2(R,lv){return BH.clubNot(R,lv,2)},
+clubNot3(R,lv){return BH.clubNot(R,lv,3)},
+rectKind(R,lv){const sc=R.pick([['צריך להקיף גינה מלבנית בגדר. מה מחשבים כדי לדעת כמה גדר צריך?','היקף','שטח','הגדר עוברת סביב הגינה, לכן מחשבים את ההיקף: סכום כל הצלעות.'],['רוצים לכסות רצפה מלבנית באריחים. מה מחשבים כדי לדעת כמה מקום יש לכסות?','שטח','היקף','האריחים מכסים את כל הרצפה, לכן מחשבים שטח: אורך כפול רוחב.']]);
+ const [o,i]=shuf(R,sc[1],[sc[2]]);return ch(sc[0],o,i,'היקף הוא "הדרך סביב". שטח הוא "כמה מקום בפנים".',sc[3])},
+rectPer(R,lv){const a=lv?R.ri(9,20):R.ri(4,9),b=lv?R.ri(5,a-1):R.ri(2,a-1);
+ return num('מלבן אורכו '+a+' מ\' ורוחבו '+b+' מ\'. מה היקף המלבן במטרים?',2*(a+b),'היקף הוא סכום כל ארבע הצלעות: שתי צלעות של '+a+' ושתי צלעות של '+b+'.',M(a+' + '+b+' + '+a+' + '+b+' = '+2*(a+b))+', או '+M('2 × ('+a+' + '+b+') = '+2*(a+b))+'.')},
+rectArea(R,lv){const a=lv?R.ri(9,20):R.ri(4,9),b=lv?R.ri(5,a-1):R.ri(2,a-1);
+ return num('מלבן אורכו '+a+' מ\' ורוחבו '+b+' מ\'. מה שטח המלבן במטרים רבועים?',a*b,'שטח מלבן הוא אורך כפול רוחב.',M(a+' × '+b+' = '+a*b)+'.')},
+triKind(R,lv){const a=R.pick([4,6,8,10]),b=R.pick([3,5,7,9]);const right=M(a+' × '+b+' ÷ 2'),[o,i]=shuf(R,right,[M(a+' × '+b),M(a+' + '+b),M('2 × ('+a+' + '+b+')')]);
+ return ch('משולש ישר זווית, הניצבים שלו '+a+' ו-'+b+'. איזה חישוב נותן את השטח שלו?',o,i,'משולש ישר זווית הוא חצי מלבן. שטח המלבן הוא ניצב כפול ניצב.',right+': קודם מכפילים את הניצבים ואז מחלקים ב-2, כי המשולש הוא חצי מהמלבן.')},
+triHalf(R,lv){const a=R.ri(2,9),b=R.ri(2,9)*2;
+ return num('שטח מלבן הוא '+M(a+' × '+b+' = '+a*b)+' סמ"ר. משולש ישר זווית הוא חצי מהמלבן הזה. מה שטח המשולש בסמ"ר?',a*b/2,'חצי מהשטח של המלבן.',M(a*b+' ÷ 2 = '+a*b/2)+'.')},
+triArea(R,lv){let a,b;if(lv===0){a=R.ri(2,6);b=R.pick([2,4,6,8])}else{a=R.ri(3,12);b=R.ri(3,12);if(a*b%2)b++}
+ return num('נתון משולש ישר זווית. אורכי הניצבים הם '+a+' ס"מ ו-'+b+' ס"מ. מה שטח המשולש בסמ"ר?',a*b/2,'מכפילים את שני הניצבים, ואז מחלקים ב-2.',M(a+' × '+b+' = '+a*b)+' ואז '+M(a*b+' ÷ 2 = '+a*b/2)+'.')}
+};
+const board=[
+ num('לדנה יש 40 מסטיקים. היא נתנה לחברה '+F(3,8)+' מהם. כמה מסטיקים קיבלה החברה?',15,'מחלקים את 40 ב-8, ואז מכפילים ב-3.',M('40 ÷ 8 = 5')+' ואז '+M('5 × 3 = 15')+'. החברה קיבלה 15 מסטיקים.'),
+ num('בכיתה 36 תלמידים. '+F(2,9)+' מהם השתתפו בחוג אוריגמי. כמה תלמידים השתתפו בחוג אוריגמי?',8,'מחלקים את 36 ב-9, ואז מכפילים ב-2.',M('36 ÷ 9 = 4')+' ואז '+M('4 × 2 = 8')+'.'),
+ num('באותה כיתה (36 תלמידים) '+F(1,4)+' השתתפו בחוג כדורגל. כמה תלמידים השתתפו בחוג כדורגל?',9,'מחלקים את 36 ב-4.',M('36 ÷ 4 = 9')+'.'),
+ num('ועוד '+F(1,3)+' מהכיתה השתתפו בחוג תפירה. כמה תלמידים השתתפו בחוג תפירה?',12,'מחלקים את 36 ב-3.',M('36 ÷ 3 = 12')+'.'),
+ num('בכיתה 36 תלמידים: 8 באוריגמי, 9 בכדורגל ו-12 בתפירה. כל תלמיד בחוג אחד לכל היותר. כמה תלמידים לא רשומים לאף חוג?',7,'מחברים את שלושת החוגים ומחסרים מ-36.',M('8 + 9 + 12 = 29')+' ואז '+M('36 - 29 = 7')+'.'),
+ num('מלבן אורכו 14 מ\' ורוחבו 8 מ\'. מה היקף המלבן במטרים?',44,'סכום כל ארבע הצלעות.',M('14 + 8 + 14 + 8 = 44')+', או '+M('2 × (14 + 8) = 44')+'.'),
+ num('לאותו מלבן (14 מ\' על 8 מ\'): מה שטח המלבן במטרים רבועים?',112,'אורך כפול רוחב.',M('14 × 8 = 112')+'.'),
+ num('נתון משולש ישר זווית. אורכי הניצבים הם 3 ס"מ ו-4 ס"מ. מה שטח המשולש בסמ"ר?',6,'ניצב כפול ניצב, ואז חלקי 2.',M('3 × 4 = 12')+' ואז '+M('12 ÷ 2 = 6')+'.')
+];
+const hSets=[
+{id:'H1',tr:'H',n:'חלק מכמות: מתחילים בקל',i:'<p>כדי למצוא <b>שבר מכמות</b>: מחלקים את הכמות במכנה, ומכפילים במונה.</p><p>דוגמה: '+F(3,8)+' מ-24: '+M('24 ÷ 8 = 3')+' ואז '+M('3 × 3 = 9')+'.</p>',g:R=>[BH.gumPart(R,0),BH.gumPart(R,0),BH.gumPart(R,0),BH.gumPart(R,0),BH.gumPart(R,1),BH.gumPart(R,1),BH.gumPart(R,1),BH.gumPart(R,1)]},
+{id:'H2',tr:'H',n:'כמה קיבלה וכמה נשאר',i:'<p>קודם מוצאים את החלק (מחלקים במכנה, מכפילים במונה). כששואלים <b>כמה נשאר</b>, מחסרים את החלק מהכמות כולה.</p>',g:R=>[BH.gumPart(R,1),BH.gumRest(R,0),BH.gumRest(R,0),BH.gumRest(R,1),BH.gumRest(R,1),BH.gumPart(R,2),BH.gumRest(R,2),BH.gumRest(R,2)]},
+{id:'H3',tr:'H',n:'חוגים בכיתה: חוג אחד',i:'<p>בכיתה יש מספר תלמידים, ושבר מהם הולך לחוג. זה בדיוק <b>שבר מכמות</b>: מחלקים את מספר התלמידים במכנה ומכפילים במונה.</p>',g:R=>[BH.clubOne(R,0),BH.clubOne(R,0),BH.clubOne(R,0),BH.clubOne(R,1),BH.clubOne(R,1),BH.clubOne(R,1),BH.clubNot2(R,0),BH.clubNot2(R,0)]},
+{id:'H4',tr:'H',n:'חוגים: מי לא רשום לאף חוג',i:'<p>שלושה צעדים: (1) כמה בכל חוג? (2) מחברים את כל החוגים. (3) מחסרים ממספר התלמידים בכיתה, וזה מי שלא רשום.</p>',g:R=>[BH.clubOne(R,1),BH.clubNot2(R,0),BH.clubNot2(R,1),BH.clubNot2(R,1),BH.clubNot3(R,0),BH.clubNot3(R,1),BH.clubNot3(R,1),BH.clubNot3(R,1)]},
+{id:'H5',tr:'H',n:'מלבן: היקף ושטח',i:'<p><b>היקף</b> = סכום כל ארבע הצלעות (הדרך סביב). <b>שטח</b> = אורך כפול רוחב (כמה מקום בפנים).</p><p>דוגמה: מלבן 5 על 3. היקף: '+M('5 + 3 + 5 + 3 = 16')+'. שטח: '+M('5 × 3 = 15')+'.</p>',g:R=>[BH.rectKind(R,0),BH.rectPer(R,0),BH.rectPer(R,0),BH.rectArea(R,0),BH.rectArea(R,0),BH.rectKind(R,0),BH.rectPer(R,1),BH.rectArea(R,1)]},
+{id:'H6',tr:'H',n:'משולש ישר זווית: שטח',i:'<p>בשביל משולש ישר זווית: <b>ניצב כפול ניצב, וחלקי 2</b>. המשולש הוא חצי ממלבן.</p><p>דוגמה: ניצבים 3 ו-4: '+M('3 × 4 = 12')+' ואז '+M('12 ÷ 2 = 6')+'.</p>',g:R=>[BH.triHalf(R,0),BH.triKind(R,0),BH.triArea(R,0),BH.triArea(R,0),BH.triArea(R,0),BH.triKind(R,1),BH.triArea(R,1),BH.triArea(R,1)]},
+{id:'H7',tr:'H',n:'חזרה מעורבת למבדק',i:'<p>תרגיל אחד מכל נושא מהלוח: שבר מכמות, חוגים, מלבן ומשולש. אם משהו מסתבך, חוזרים לסט של אותו נושא.</p>',g:R=>[BH.gumPart(R,2),BH.gumRest(R,1),BH.clubNot2(R,1),BH.clubNot3(R,1),BH.rectPer(R,1),BH.rectArea(R,1),BH.triKind(R,1),BH.triArea(R,1)]},
+{id:'H8',tr:'H',n:'השאלות מהלוח, בדיוק',i:'<p>אלה השאלות מהלוח, עם אותם מספרים. אם הצלחת כאן, אתה מוכן לאלה שבמבדק.</p>',g:R=>board}
+];
+SETS.push(...hSets);
+
+
+const ORDER=['H1','H2','H3','H4','H5','H6','H7','H8','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
 function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
 if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
-const VERSION='2026-10-11-b';
+const VERSION='2026-10-11-c';
 const KEY='giladica-v1';
 let S={done:{},runs:{},fish:0,log:[]};
 try{const x=JSON.parse(localStorage.getItem(KEY));if(x)S=Object.assign(S,x)}catch(e){}
@@ -206,7 +265,7 @@ function home(){cur=null;const nx=nextId();const nd=Object.keys(S.done).length;
  let h='<div class="top"><h1>גלעדיקה 🎣</h1></div><div class="card"><b>'+nd+' מתוך '+SETS.length+' סטים הושלמו</b><div class="prog"><i style="width:'+(nd/SETS.length*100)+'%"></i></div>'+
  (nx?'<button class="btn big" onclick="openSet(\''+nx+'\')">הסט של היום: '+setOf(nx).n+'</button><div style="color:#5d7a85;font-size:15px">כל סט לוקח בערך 10 דקות. אפשר לעצור באמצע ולחזור.</div>':'<div class="fish">🏆</div><b>סיימת את כל הסטים! אפשר לחזור לכל סט ולנסות שוב.</b>')+'</div>';
  h+='<div class="card"><b>האוסף שלי</b><div class="grid">'+(S.fish?Array.from({length:S.fish},(_,i)=>FISH[i%FISH.length]).join(''):'<span style="font-size:16px;color:#5d7a85">כל סט שמסיימים מוסיף דג חדש.</span>')+'</div></div>';
- for(const tr of ['T','B','A']){h+='<div class="sec-h">'+(tr==='T'?'הכנה למבחן 🎯':tr==='B'?'שבר כמנת חילוק (החומר מהכיתה)':'מחזקים את הבסיס')+'</div>';
+ for(const tr of ['H','T','B','A']){h+='<div class="sec-h">'+(tr==='H'?'חזרה למבדק של יום שלישי 📋':tr==='T'?'הכנה למבחן 🎯':tr==='B'?'שבר כמנת חילוק (החומר מהכיתה)':'מחזקים את הבסיס')+'</div>';
   for(const id of ORDER.filter(i=>setOf(i).tr===tr)){const s=setOf(id),d=S.done[id];h+='<button class="set'+(d?' done':'')+(id===nx?' next':'')+'" onclick="openSet(\''+id+'\')"><span class="no">'+(d?'✓':id)+'</span><span>'+s.n+(d?'<small>עשית '+(S.runs[id]||1)+' פעמים</small>':'')+'</span>'+(id===nx?'<span class="tag">הבא</span>':'')+'</button>'}}
  h+='<p style="text-align:center"><button class="lnk" onclick="parent_()">להורה</button></p>';$.innerHTML=h;window.scrollTo(0,0)}
 function openSet(id){const s=setOf(id);const v=S.runs[id]||0;
