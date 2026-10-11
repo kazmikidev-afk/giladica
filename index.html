@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b6e8a"><title>גלעדיקה</title>
+<meta http-equiv="Cache-Control" content="no-cache"><meta name="theme-color" content="#0b6e8a"><title>גלעדיקה</title>
 <style>
 :root{--bg:#f2f8fa;--card:#fff;--ink:#17323b;--mut:#5d7a85;--pri:#0b6e8a;--pri2:#e0f1f6;--ok:#1e8e4e;--okbg:#e5f6ec;--warn:#b86e00;--warnbg:#fff4de;--line:#d3e3e9}
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.5;-webkit-text-size-adjust:100%}
@@ -192,6 +192,7 @@ SETS.unshift(...exSets);
 const ORDER=['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
 function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
 if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
+const VERSION='2026-10-11-b';
 const KEY='giladica-v1';
 let S={done:{},runs:{},fish:0,log:[]};
 try{const x=JSON.parse(localStorage.getItem(KEY));if(x)S=Object.assign(S,x)}catch(e){}
@@ -247,4 +248,7 @@ function parent_(){const rows=S.log.slice(-15).reverse().map(l=>'<div>'+l.d.repl
 function copySum(){const t='גלעדיקה: '+Object.keys(S.done).length+'/'+SETS.length+' סטים. אחרונים בניסיון ראשון: '+window._txt;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('הועתק'),()=>prompt('העתק:',t))}
 function bk(){document.getElementById('bk').innerHTML='<textarea id="bt">'+JSON.stringify(S)+'</textarea><button class="btn sec" onclick="try{S=Object.assign({done:{},runs:{},fish:0,log:[]},JSON.parse(document.getElementById(\'bt\').value));save();home()}catch(e){alert(\'לא תקין\')}">שחזר מהטקסט</button>'}
 home();
+
+function chkVer(){fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const VERSION='([^']+)'/);if(m&&m[1]!==VERSION&&!document.getElementById('newv')){const d=document.createElement('div');d.id='newv';d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9;background:#b86e00;color:#fff;padding:10px;text-align:center;font-size:17px';d.innerHTML='יש גרסה חדשה עם תרגילים חדשים. <button style="font:inherit;padding:4px 12px;border-radius:8px;border:0;margin-inline-start:8px" onclick="location.replace(location.pathname+\'?v=\'+Date.now())">לחץ כאן לעדכון</button>';document.body.appendChild(d)}}).catch(()=>{})}
+chkVer();document.addEventListener('visibilitychange',()=>{if(!document.hidden)chkVer()});setInterval(chkVer,300000);
 </script></body></html>
