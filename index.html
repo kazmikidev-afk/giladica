@@ -82,7 +82,7 @@ f2d(R,lv){const L=lv===0?[[1,2,.5],[1,10,.1],[3,10,.3],[1,4,.25],[3,4,.75],[1,5,
  return num('כתוב כמספר עשרוני: '+F(x[0],x[1]),x[2],'חילוק: '+M(x[0]+' ÷ '+x[1])+'. או הרחב את המכנה ל-10 או ל-100.',F(x[0],x[1])+' = '+M(x[0]+' ÷ '+x[1]+' = '+fmt(x[2])))},
 d2f(R,lv){const L=lv===0?[[.5,1,2],[.3,3,10],[.7,7,10],[.25,1,4],[.2,1,5],[.9,9,10]]:[[.75,3,4],[.6,3,5],[.4,2,5],[.35,7,20],[.45,9,20],[.8,4,5],[.15,3,20],[.04,1,25]];const x=R.pick(L);
  return frac('כתוב כשבר: '+M(fmt(x[0]))+' (אפשר גם בלי לצמצם)',x[1],x[2],'עשיריות: מכנה 10. מאיות: מכנה 100. אחר כך אפשר לצמצם.',M(fmt(x[0]))+' = '+F(x[1],x[2])+' אחרי צמצום.')},
-part(R,lv){const d=R.pick(lv?[3,4,5,6,8]:[2,4,5,10]),n=lv?R.ri(2,d-1):1,q=R.ri(2,lv?9:5)*d;return num('כמה זה '+F(n,d)+' מתוך '+q+'?',q/d*n,'מחלקים ב-'+d+' ומכפילים ב-'+n+'.','מחלקים: '+M(q+' ÷ '+d+' = '+(q/d))+(n>1?' ומכפילים ב-'+n+': '+M(q/d*n):''))},
+part(R,lv){const d=R.pick(lv?[3,4,5,6,8]:[2,4,5,10]),n=lv?R.ri(2,d-1):1,q=R.ri(2,lv?9:5)*d;return num('כמה זה '+F(n,d)+' מתוך '+M(q)+'.',q/d*n,'מחלקים ב-'+d+' ומכפילים ב-'+n+'.','מחלקים: '+M(q+' ÷ '+d+' = '+(q/d))+(n>1?' ומכפילים ב-'+n+': '+M(q/d*n):''))},
 word2(R,lv){const b=R.pick([2,4,5]);let a;do{a=R.ri(b+1,3*b)}while(a%b===0);const c=R.pick([['מטר חבל נחתכים','חלקים שווים','מטר בכל חלק'],['ק"ג קמח נארזים','שקיות שוות','ק"ג בכל שקית'],['ליטר מיץ מחולקים','כוסות שוות','ליטר בכל כוס']]);return num(a+' '+c[0]+' ל-'+b+' '+c[1]+'. כמה '+c[2]+'? כתוב כמספר עשרוני',a/b,'חילוק: '+M(a+' ÷ '+b),M(a+' ÷ '+b+' = '+fmt(a/b)))},
 word3(R,lv){const b=R.ri(3,7),w=R.ri(1,3),r=R.ri(1,b-1),a=w*b+r;return mix(a+' ק"ג תפוחים מחולקים ל-'+b+' שקיות שוות. כמה ק"ג בכל שקית? כתוב כמספר מעורב',w,r,b,'חילוק עם שארית: השארית הולכת למעלה.',M(a+' ÷ '+b)+' = '+MX(w,r,b))}
 };
@@ -113,7 +113,83 @@ const SETS=[
 {id:'B13',tr:'B',n:'חזרה מעורבת',i:'<p>סט חזרה על כל מה שלמדנו ביחידה. כל תרגיל מזכיר משהו שכבר עשית.</p>',g:(R)=>[B.quot(R,1),B.toMix(R,0),B.rem(R,0),B.f2d(R,0),B.d2f(R,0),B.part(R,0),B.big(R,1),B.share(R,1)]},
 {id:'B14',tr:'B',n:'סיכום היחידה',i:'<p>הסט האחרון של היחידה. אם משהו מסתבך, הרמזים כאן בשבילך. כל הכבוד על ההגעה לכאן.</p>',g:(R)=>[B.story(R,1),B.toImp(R,0),B.rem(R,1),B.f2d(R,1),B.d2f(R,1),B.part(R,1),B.word2(R,0),B.word3(R,0)]}
 ];
-const ORDER=['B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
+// ---------- test-prep track (T) ----------
+const rd=(n,d)=>{const g=gcd(Math.abs(n),d)||1;return[n/g,d/g]};
+const tri=(n,d)=>{[n,d]=rd(n,d);const w=Math.floor(n/d),r=n-w*d;return[w,r,r?d:1]};
+const opd=(w,n,d)=>n===0?String(w):w?MX(w,n,d):F(n,d);
+const lcm=(a,b)=>a*b/gcd(a,b);
+const mixq=(t,n,d,h,e,red)=>{const a=tri(n,d);const q=mix(t,a[0],a[1],a[2],h,e);q.red=true;return q};
+const ansTxt=(n,d)=>{const a=tri(n,d);return opd(a[0],a[1],a[2])};
+const NOTE='<br><small>אם יוצא קטן מ-1, השאר את תיבת השלמים ריקה.</small>';
+const rimp=(w,n,d)=>w*d+n;
+Object.assign(B,{
+addSame(R,lv){const d=R.ri(5,12);let x,y,op='+',t,e;
+ if(lv===0){const a=R.ri(1,d-2),b=R.ri(1,d-1-a+(R.ri(0,1)?1:0));const s=a+b;
+  return mixq('חשב: '+M(F(a,d)+' + '+F(b,d))+NOTE,s,d,'אותו מכנה: מחברים רק את המונים והמכנה נשאר. אחר כך מצמצמים אם אפשר.',M(F(a,d)+' + '+F(b,d)+' = ')+F(s,d)+(gcd(s,d)>1||s>d?'. ואחרי צמצום: '+M(ansTxt(s,d)):''))}
+ if(lv===1){const n=R.ri(3,d-1),b=R.ri(1,n-1);return mixq('חשב: '+M(F(n,d)+' - '+F(b,d))+NOTE,n-b,d,'אותו מכנה: מחסרים רק את המונים. אחר כך מצמצמים.',M(F(n,d)+' - '+F(b,d)+' = ')+F(n-b,d)+(gcd(n-b,d)>1?'. אחרי צמצום: '+M(ansTxt(n-b,d)):''))}
+ const w1=R.ri(2,5),n1=R.ri(1,d-1),w2=R.ri(1,w1-1),n2=R.ri(1,d-1);op=R.pick(['+','-']);if(op==='-'&&n1===n2)op='+';
+ const X=rimp(w1,n1,d),Y=rimp(w2,n2,d);const r=op==='+'?X+Y:X-Y;
+ return mixq('חשב: '+M(opd(w1,n1,d)+' '+op+' '+opd(w2,n2,d))+NOTE,r,d,'הפוך כל מספר מעורב לשבר: שלמים כפול מכנה ועוד מונה. אחר כך פעל על המונים והחזר למספר מעורב.',M(opd(w1,n1,d)+' = ')+F(X,d)+' ו-'+M(opd(w2,n2,d)+' = ')+F(Y,d)+'. '+M(F(X,d)+' '+op+' '+F(Y,d)+' = ')+F(r,d)+', כלומר '+M(ansTxt(r,d)))},
+unlike(R,lv){let terms,ops=['+'];
+ if(lv===0){const p=R.pick([[2,4],[2,6],[3,6],[5,10],[2,8],[4,8],[3,9],[5,15],[4,12],[6,12],[3,12],[5,20]]);terms=[[R.ri(1,p[0]-1),p[0]],[R.ri(1,p[1]-1),p[1]]]}
+ else if(lv===1){const p=R.pick([[2,3],[3,4],[2,9],[3,5],[4,6],[6,9],[2,5]]);terms=[[R.ri(0,2),R.ri(1,p[0]-1),p[0]],[0,R.ri(1,p[1]-1),p[1]]];if(R.ri(0,1))ops=['-']}
+ else{const p=R.pick([[2,4,6],[3,6,9],[2,4,8],[5,10,2]]);terms=p.map(d=>[R.ri(1,d-1),d])}
+ const L=terms.reduce((a,t)=>lcm(a,t[t.length-1]),1);
+ const val=t=>t.length===3?rimp(t[0],t[1],t[2]):t[0];const den=t=>t[t.length-1];
+ const ex=t=>t.length===3?(t[0]?MX(t[0],t[1],t[2]):F(t[1],t[2])):F(t[0],t[1]);
+ let nums=terms.map(t=>val(t)*(L/den(t)));
+ let r,op=ops[0];if(terms.length===3){r=nums[0]+nums[1]+nums[2]}else if(op==='+'){r=nums[0]+nums[1]}else{if(nums[0]<nums[1]){terms=[terms[1],terms[0]];nums=[nums[1],nums[0]]}r=nums[0]-nums[1]}
+ const expr=terms.map(ex).join(' '+(terms.length===3?'+':op)+' ');
+ return mixq('חשב: '+M(expr)+NOTE,r,L,'מוצאים מכנה משותף, מרחיבים כל שבר אליו, ואז מחברים או מחסרים את המונים.','המכנה המשותף הוא '+L+'. '+terms.map((t,i)=>M(ex(t)+' = ')+F(nums[i],L)).join(', ')+'. התוצאה: '+M(F(r,L)+' = '+ansTxt(r,L)))},
+fracTimes(R,lv){const b=lv===0?R.ri(3,6):R.ri(3,8);const a=lv===0?R.ri(1,2):R.ri(1,b-1);const n=lv===0?R.ri(2,5):R.ri(2,9);const r=n*a;
+ return mixq('חשב: '+M(n+' × '+F(a,b))+NOTE,r,b,'שלם כפול שבר: מכפילים את השלם במונה והמכנה נשאר. אם יוצא שבר גדול מ-1, כותבים כמספר מעורב.',M(n+' × '+F(a,b)+' = ')+F(n+' × '+a,b)+' = '+F(r,b)+(r>=b||gcd(r,b)>1?' = '+M(ansTxt(r,b)):''))},
+partWord(R,lv){const th=R.pick(['גזרים','כדורים','זיתים','מפות','תפוחים','מדבקות']);const d=R.pick(lv?[3,4,5,8,10]:[2,4,5,10]);const n=lv?R.ri(2,d-1):R.ri(1,d>2?2:1);const k=R.ri(2,lv?6:4);const q=d*k;const r=k*n;
+ return num('בסל יש '+q+' '+th+'. '+F(n,d)+' מהם נשארו. כמה '+th+' נשארו?',r,'קודם מחלקים ב-'+d+', אחר כך מכפילים ב-'+n+'.',M(q+' ÷ '+d+' = '+k)+(n>1?' ואז '+M(k+' × '+n+' = '+r):'')+'. נשארו '+r)},
+divis(R,lv){const d=R.pick([3,4,5,6]);const good=d*R.ri(Math.ceil(20/d),Math.floor(40/d));const bad=[];while(bad.length<2){const x=R.ri(20,40);if(x%d&&bad.indexOf(x)<0&&x!==good)bad.push(x)}
+ const [o,i]=shuf(R,String(good),bad.map(String));return ch('בכיתה '+F(1,d)+' מהתלמידים הם בנים. כמה תלמידים יכולים להיות בכיתה?',o,i,'מספר הבנים חייב להיות מספר שלם, אז מספר התלמידים חייב להתחלק ב-'+d+' בלי שארית.',M(good+' ÷ '+d+' = '+good/d)+' יוצא מספר שלם, לכן '+good+' אפשרי. בשאר יוצא שבר.')},
+d2fr(R,lv){const P=lv?['0.024','0.262','4.125','15.012','6.015','0.375','2.008','0.125','1.016','3.064','0.052','5.375']:['3.8','2.75','0.07','0.35','1.5','0.6','4.2','3.2','5.6','1.25','0.45','7.5','0.08','2.4'];let s;
+ if(R.ri(0,1)===0){const k=lv?3:R.ri(1,2);let N;do{N=R.ri(1,10**k-1)}while(N%10===0);s=(lv&&R.ri(0,1)?R.ri(1,15):0)+'.'+String(N).padStart(k,'0')}else s=R.pick(P);
+ const [ws,fs]=s.split('.');const k=fs.length,N=+fs,w=+ws;const [pn,pd]=rd(N,10**k);const txt=M(s);
+ const e=txt+' = '+F(N,10**k)+(w?' ועוד '+w+' שלמים':'')+'. אחרי צמצום: '+(w?MX(w,pn,pd):F(pn,pd));
+ if(w){const q=mix('כתוב כמספר מעורב מצומצם: '+txt,w,pn,pd,'אחרי הנקודה: '+(k===1?'עשיריות':k===2?'מאיות':'אלפיות')+'. כתוב את הספרות מעל '+10**k+' ואז צמצם.',e);q.red=true;return q}
+ const q=frac('כתוב כשבר מצומצם: '+txt,pn,pd,'אחרי הנקודה: '+(k===1?'עשיריות':k===2?'מאיות':'אלפיות')+'. כתוב את הספרות מעל '+10**k+' ואז צמצם.',e);q.red=true;return q},
+fd(R,n,d,mode){const [pn,pd]=rd(n,d);let k=1;while((10**k)%pd&&k<4)k++;const m=(10**k)/pd;const v=n/d;
+ const h=mode==='f2d'?'אפשר לחלק את המונה במכנה, או להרחיב את המכנה ל-10, ל-100 או ל-1000.':'קודם צמצם את השבר, ואז הרחב את המכנה ל-10, ל-100 או ל-1000.';
+ return num((mode==='f2d'?'כתוב כמספר עשרוני: ':'צמצם או הרחב וכתוב כמספר עשרוני: ')+F(n,d),Math.round(v*1e6)/1e6,h,F(n,d)+(pd!==d?' = '+F(pn,pd):'')+' = '+F(pn*m,10**k)+' = '+M(fmt(v)))},
+randF2d(R,lv){const d=R.pick(lv?[2,4,5,8,20,25,50]:[10,100]);const n=R.ri(1,lv?2*d:d-1);return B.fd(R,n,d,'f2d')},
+randExp(R,lv){const p=R.pick(lv?[[3,8],[7,10],[9,20],[13,25],[3,5],[7,50]]:[[3,4],[4,5],[7,20],[1,2],[11,25]]);const m=R.ri(lv?3:1,lv?9:3);return B.fd(R,p[0]*m,p[1]*m,'exp')},
+eqF(R,lv){const P=R.pick([[13,25],[36,60],[9,20],[21,30],[14,35],[18,50]]);const n=P[0],d=P[1],v=n/d;const c=[fmt(v)],cand=[fmt(n/100),fmt(v*10),fmt(v/10),fmt(v+0.1),fmt(n/10),fmt(v*100)];for(const x of cand){if(c.length<4&&c.indexOf(x)<0)c.push(x)}
+ const o=R.shuffle(c);return ch('בחר את המספר ששווה ל-'+F(n,d)+'.',o,o.indexOf(fmt(v)),'הפוך את השבר למספר עשרוני: צמצם והרחב ל-100, או חלק את המונה במכנה.',F(n,d)+' = '+M(fmt(v)))},
+eqD(R,lv){const x=R.pick([6,35,52,8,45,75,24,4,125])/ (R.pick([1])) ;const v=R.pick([0.6,0.35,0.52,0.08,0.45,0.75,0.24,0.125]);const k=fmt(v).split('.')[1].length;const N=Math.round(v*10**k);const [pn,pd]=rd(N,10**k);
+ const w=[F(N,10**(k+1)),F(1,N),F(N,10**(k-1)||1),F(pd,pn)].filter((s,i,a)=>a.indexOf(s)===i&&s!==F(pn,pd));const o=R.shuffle([F(pn,pd)].concat(w.slice(0,3)));
+ return ch('בחר את השבר ששווה ל-'+M(fmt(v))+'.',o,o.indexOf(F(pn,pd)),'עשיריות הן מעל 10, מאיות מעל 100, אלפיות מעל 1000. אחר כך מצמצמים.',M(fmt(v))+' = '+F(N,10**k)+' = '+F(pn,pd))},
+between(R,lv){const lo=R.ri(100,880)/1000,hi=Math.round((lo+0.1)*1000)/1000,mid=Math.round((lo+0.05)*1000)/1000;const bad=[Math.round((lo-0.012)*1000)/1000,Math.round((hi+0.013)*1000)/1000,lo].map(fmt);const [o,i]=shuf(R,fmt(mid),bad);
+ return ch('בחר מספר שנמצא בין '+M(fmt(lo))+' ל-'+M(fmt(hi))+'.',o,i,'הרחב את המספרים לאלפיות כדי להשוות אותם בקלות.',M(fmt(lo)+' < '+fmt(mid)+' < '+fmt(hi)))},
+vdec(R,lv){const sc=1000;let a,b,ka,kb;
+ if(lv===0){ka=2;kb=2}else if(lv===1){ka=R.ri(1,2);kb=3}else{ka=R.pick([0,2,3]);kb=ka===0?R.ri(2,3):0}
+ const mkn=(k)=>k===0?R.ri(1,15)*sc:R.ri(0,lv===0?9:12)*sc*(R.ri(0,1))+R.ri(10**(k-1),10**k-1)*(sc/10**k);
+ let A=lv===0&&R.ri(0,1)?R.ri(2,15)*sc:mkn(ka),Bv=mkn(kb);
+ if(lv===0&&A%sc===0){Bv=R.ri(100,999)*10}
+ let op=R.ri(0,1)?'+':'-';if(op==='-'&&A<=Bv){const t=A;A=Bv;Bv=t}if(op==='-'&&A===Bv)A+=sc;
+ const dsp=v=>fmt(v/sc);const r=op==='+'?A+Bv:A-Bv;const pad=Math.max(String(dsp(A)).split('.')[1]?.length||0,String(dsp(Bv)).split('.')[1]?.length||0);
+ const pf=v=>(v/sc).toFixed(pad);
+ return num('חשב בטור: '+M(dsp(A)+' '+op+' '+dsp(Bv)),Math.round(r)/sc,'כתוב בטור, נקודה מתחת לנקודה. אפשר להשלים אפסים בסוף המספר הקצר.',M(pf(A)+' '+op+' '+pf(Bv)+' = '+pf(r))+' (השלמנו אפסים כדי שיהיה אותו מספר ספרות אחרי הנקודה)')}
+});
+const exSets=[
+{id:'T1',tr:'T',n:'שברים עם אותו מכנה',i:'<p>כשהמכנה אותו דבר מחברים או מחסרים רק את <b>המונים</b>. המכנה נשאר. בסוף מצמצמים, ואם יצא שבר גדול מ-1 כותבים אותו כמספר מעורב.</p><p>דוגמה: '+M(F(3,7)+' + '+F(2,7)+' = ')+F(5,7)+'.</p><p>את התשובה כותבים בשלוש תיבות: שלמים, מונה ומכנה. אם אין שלמים משאירים אותה ריקה.</p>',g:R=>[B.addSame(R,0),B.addSame(R,0),B.addSame(R,0),B.addSame(R,1),B.addSame(R,1),B.addSame(R,2),B.addSame(R,2),B.addSame(R,2)]},
+{id:'T2',tr:'T',n:'שברים עם מכנים שונים',i:'<p>כשהמכנים שונים קודם צריך <b>מכנה משותף</b>: מספר ששני המכנים נכנסים בו. מרחיבים כל שבר אליו, ואז מחברים או מחסרים כמו קודם.</p><p>דוגמה: '+M(F(1,2)+' + '+F(1,4))+': המכנה המשותף 4. '+M(F(1,2)+' = ')+F(2,4)+', ולכן '+M(F(2,4)+' + '+F(1,4)+' = ')+F(3,4)+'.</p>',g:R=>[B.unlike(R,0),B.unlike(R,0),B.unlike(R,0),B.unlike(R,1),B.unlike(R,1),B.unlike(R,1),B.unlike(R,2),B.unlike(R,2)]},
+{id:'T3',tr:'T',n:'שלם כפול שבר',i:'<p>כשכופלים מספר שלם בשבר, כופלים את השלם במונה והמכנה נשאר.</p><p>דוגמה: '+M('4 × '+F(2,3)+' = ')+F('4 × 2',3)+' = '+F(8,3)+' = '+MX(2,2,3)+'.</p>',g:R=>[B.fracTimes(R,0),B.fracTimes(R,0),B.fracTimes(R,0),B.fracTimes(R,1),B.fracTimes(R,1),B.fracTimes(R,1),B.fracTimes(R,1),B.fracTimes(R,1)]},
+{id:'T4',tr:'T',n:'חלק מכמות ובעיות מילוליות',i:'<p>כדי למצוא שבר מכמות: מחלקים את הכמות במכנה, ומכפילים במונה.</p><p>דוגמה: '+F(3,8)+' מ-24 הם '+M('24 ÷ 8 = 3')+' ואחר כך '+M('3 × 3 = 9')+'.</p>',g:R=>[B.partWord(R,0),B.partWord(R,0),B.partWord(R,0),B.partWord(R,1),B.partWord(R,1),B.partWord(R,1),B.divis(R,0),B.divis(R,0)]},
+{id:'T5',tr:'T',n:'מעשרוני לשבר מצומצם',i:'<p>מספר עשרוני הוא שבר: עשיריות מעל 10, מאיות מעל 100, אלפיות מעל 1000. אחר כך מצמצמים.</p><p>דוגמה: '+M('0.35 = ')+F(35,100)+' = '+F(7,20)+'. ו-'+M('2.5')+' הוא '+MX(2,5,10)+' = '+MX(2,1,2)+'.</p>',g:R=>[B.d2fr(R,0),B.d2fr(R,0),B.d2fr(R,0),B.d2fr(R,0),B.d2fr(R,1),B.d2fr(R,1),B.d2fr(R,1),B.d2fr(R,1)]},
+{id:'T6',tr:'T',n:'משבר לעשרוני',i:'<p>יש שתי דרכים: לחלק את המונה במכנה, או להרחיב את המכנה ל-10, ל-100 או ל-1000.</p><p>דוגמה: '+F(8,25)+' = '+F(32,100)+' = '+M('0.32')+'.</p>',g:R=>{const P0=R.shuffle([[19,100],[38,100],[17,50],[1,4],[8,25]]),P1=R.shuffle([[12,300],[16,40],[14,14],[223,500],[13,5]]);return[B.fd(R,...P0[0],'f2d'),B.fd(R,...P0[1],'f2d'),B.randF2d(R,0),B.randF2d(R,0),B.fd(R,...P1[0],'f2d'),B.fd(R,...P1[1],'f2d'),B.randF2d(R,1),B.fd(R,...P1[2],'f2d')]}},
+{id:'T7',tr:'T',n:'הרחבה וצמצום לשבר עשרוני',i:'<p>לפעמים קודם <b>מצמצמים</b> ואז <b>מרחיבים</b> ל-10, ל-100 או ל-1000.</p><p>דוגמה: '+F(24,40)+' = '+F(3,5)+' = '+F(6,10)+' = '+M('0.6')+'.</p>',g:R=>{const P0=R.shuffle([[3,4],[4,5],[13,20],[14,25],[26,50]]),P1=R.shuffle([[24,40],[7,8],[54,600],[49,70],[21,30]]);return[B.fd(R,...P0[0],'exp'),B.fd(R,...P0[1],'exp'),B.randExp(R,0),B.fd(R,...P0[2],'exp'),B.fd(R,...P1[0],'exp'),B.fd(R,...P1[1],'exp'),B.randExp(R,1),B.fd(R,...P1[2],'exp')]}},
+{id:'T8',tr:'T',n:'שאלות בחירה',i:'<p>בשאלות עם כמה תשובות, כדאי להפוך הכול לאותה צורה: או הכול עשרוני, או הכול שברים. ובשאלה "בין שני מספרים" מרחיבים לאלפיות.</p>',g:R=>[B.eqF(R,0),B.eqF(R,0),B.eqD(R,0),B.eqF(R,0),B.eqD(R,0),B.between(R,0),B.between(R,0),B.between(R,0)]},
+{id:'T9',tr:'T',n:'חיבור וחיסור עשרוניים בטור',i:'<p>כותבים בטור, <b>נקודה מתחת לנקודה</b>. אם לאחד המספרים יש פחות ספרות אחרי הנקודה, משלימים אפסים. בחיסור כשצריך "שואלים" מהספרה הקודמת.</p><p>דוגמה: '+M('7 - 0.453')+': כותבים '+M('7.000 - 0.453 = 6.547')+'.</p>',g:R=>[B.vdec(R,0),B.vdec(R,0),B.vdec(R,0),B.vdec(R,1),B.vdec(R,1),B.vdec(R,1),B.vdec(R,2),B.vdec(R,2)]},
+{id:'T10',tr:'T',n:'חזרה מעורבת למבחן',i:'<p>תרגיל אחד מכל נושא. אם משהו מסתבך, חוזרים לסט של אותו נושא.</p>',g:R=>[B.addSame(R,1),B.unlike(R,1),B.fracTimes(R,1),B.partWord(R,1),B.d2fr(R,0),B.fd(R,13,20,'f2d'),B.vdec(R,1),B.between(R,0)]}
+];
+SETS.unshift(...exSets);
+
+const ORDER=['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
 function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
 if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
 const KEY='giladica-v1';
@@ -129,7 +205,7 @@ function home(){cur=null;const nx=nextId();const nd=Object.keys(S.done).length;
  let h='<div class="top"><h1>גלעדיקה 🎣</h1></div><div class="card"><b>'+nd+' מתוך '+SETS.length+' סטים הושלמו</b><div class="prog"><i style="width:'+(nd/SETS.length*100)+'%"></i></div>'+
  (nx?'<button class="btn big" onclick="openSet(\''+nx+'\')">הסט של היום: '+setOf(nx).n+'</button><div style="color:#5d7a85;font-size:15px">כל סט לוקח בערך 10 דקות. אפשר לעצור באמצע ולחזור.</div>':'<div class="fish">🏆</div><b>סיימת את כל הסטים! אפשר לחזור לכל סט ולנסות שוב.</b>')+'</div>';
  h+='<div class="card"><b>האוסף שלי</b><div class="grid">'+(S.fish?Array.from({length:S.fish},(_,i)=>FISH[i%FISH.length]).join(''):'<span style="font-size:16px;color:#5d7a85">כל סט שמסיימים מוסיף דג חדש.</span>')+'</div></div>';
- for(const tr of ['B','A']){h+='<div class="sec-h">'+(tr==='B'?'שבר כמנת חילוק (החומר מהכיתה)':'מחזקים את הבסיס')+'</div>';
+ for(const tr of ['T','B','A']){h+='<div class="sec-h">'+(tr==='T'?'הכנה למבחן 🎯':tr==='B'?'שבר כמנת חילוק (החומר מהכיתה)':'מחזקים את הבסיס')+'</div>';
   for(const id of ORDER.filter(i=>setOf(i).tr===tr)){const s=setOf(id),d=S.done[id];h+='<button class="set'+(d?' done':'')+(id===nx?' next':'')+'" onclick="openSet(\''+id+'\')"><span class="no">'+(d?'✓':id)+'</span><span>'+s.n+(d?'<small>עשית '+(S.runs[id]||1)+' פעמים</small>':'')+'</span>'+(id===nx?'<span class="tag">הבא</span>':'')+'</button>'}}
  h+='<p style="text-align:center"><button class="lnk" onclick="parent_()">להורה</button></p>';$.innerHTML=h;window.scrollTo(0,0)}
 function openSet(id){const s=setOf(id);const v=S.runs[id]||0;
@@ -148,8 +224,8 @@ function pickOpt(i){cur.sel=i;$.querySelectorAll('.opt').forEach(b=>b.classList.
 const val=id=>{const e=document.getElementById(id);return e?e.value.trim().replace(',','.'):''};
 function correct(q){if(q.k==='ch')return cur.sel===q.a;
  if(q.k==='num'){const x=parseFloat(val('a0'));return isFinite(x)&&Math.abs(x-q.a)<1e-6}
- if(q.k==='frac'){const n=parseInt(val('a0')),d=parseInt(val('a1'));return n>0&&d>0&&n*q.a[1]===d*q.a[0]}
- const w=parseInt(val('a0')||'0'),n=parseInt(val('a1')),d=parseInt(val('a2'));return w===q.a[0]&&n>=0&&d>0&&n*q.a[2]===d*q.a[1]&&(n<d||n===0)}
+ if(q.k==='frac'){const n=parseInt(val('a0')),d=parseInt(val('a1'));return n>0&&d>0&&n*q.a[1]===d*q.a[0]&&(!q.red||(q.a[0]===n&&q.a[1]===d))}
+ const w=parseInt(val('a0')||'0'),n=parseInt(val('a1')||'0'),d=parseInt(val('a2')||'1');const ad=q.a[2]||1;if(isNaN(w)||isNaN(n)||isNaN(d)||d<1||n<0)return false;return (w*d+n)*ad===(q.a[0]*ad+q.a[1])*d&&(n<d)&&(!q.red||n===0||gcd(n,d)===1)}
 function answerHtml(q){if(q.k==='ch')return q.opts[q.a];if(q.k==='num')return M(fmt(q.a));if(q.k==='frac')return F(q.a[0],q.a[1]);return q.a[1]?MX(q.a[0],q.a[1],q.a[2]):M(q.a[0])}
 function check(){const q=cur.qs[cur.i];const fb=document.getElementById('fb'),go=document.getElementById('go');
  if(go.dataset.next){return nextQ()}
