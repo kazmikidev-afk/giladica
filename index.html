@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b6e8a"><title>גלעדיקה</title>
+<style>
+:root{--bg:#f2f8fa;--card:#fff;--ink:#17323b;--mut:#5d7a85;--pri:#0b6e8a;--pri2:#e0f1f6;--ok:#1e8e4e;--okbg:#e5f6ec;--warn:#b86e00;--warnbg:#fff4de;--line:#d3e3e9}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.5;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 80px}
+h1{font-size:28px;margin:6px 0}h2{font-size:21px;margin:8px 0}
+.top{display:flex;align-items:center;justify-content:space-between}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px;font-size:19px;font-weight:700;background:var(--pri);color:#fff;cursor:pointer;margin:10px 0;font-family:inherit}
+.btn.sec{background:var(--pri2);color:var(--pri)}.btn.big{padding:20px;font-size:23px}
+.btn:disabled{opacity:.45}
+.set{display:flex;gap:10px;align-items:center;width:100%;text-align:right;border:1px solid var(--line);background:#fff;border-radius:14px;padding:11px 12px;margin:7px 0;font-size:17px;font-family:inherit;color:var(--ink);cursor:pointer}
+.set .no{min-width:38px;height:38px;border-radius:50%;background:var(--pri2);color:var(--pri);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.set.done .no{background:var(--okbg);color:var(--ok)}.set.next{border:2px solid var(--pri)}
+.set small{display:block;color:var(--mut);font-size:14px}.tag{margin-inline-start:auto;font-size:13px;color:#fff;background:var(--pri);border-radius:8px;padding:2px 8px}
+.sec-h{font-size:15px;color:var(--mut);margin:16px 4px 2px;font-weight:700}
+.prog{height:10px;background:var(--pri2);border-radius:8px;overflow:hidden;margin:8px 0}.prog i{display:block;height:100%;background:var(--pri);transition:width .3s}
+.q{font-size:21px;margin:8px 0 14px}
+.box{background:var(--pri2);border-radius:12px;padding:10px 12px;margin:10px 0}
+.msg{border-radius:12px;padding:10px 12px;margin:10px 0}.msg.ok{background:var(--okbg);color:#14663a}.msg.no{background:var(--warnbg);color:var(--warn)}
+input.in{font-size:24px;width:100%;padding:12px;border:2px solid var(--line);border-radius:12px;text-align:center;direction:ltr;font-family:inherit}
+input.sm{width:72px;font-size:24px;padding:10px 4px;border:2px solid var(--line);border-radius:10px;text-align:center;direction:ltr}
+.ans{display:flex;align-items:center;justify-content:center;gap:12px;direction:ltr;margin:6px 0}
+.opt{display:block;width:100%;margin:8px 0;padding:14px;border:2px solid var(--line);background:#fff;border-radius:12px;font-size:21px;font-family:inherit;cursor:pointer;color:var(--ink)}
+.opt.sel{border-color:var(--pri);background:var(--pri2)}
+.m{display:inline-block;direction:ltr;unicode-bidi:isolate;white-space:nowrap}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 3px;font-size:.95em}
+.fr b{font-weight:600;padding:0 4px}.fr i{display:block;width:100%;height:2px;background:currentColor}
+.mx{display:inline-flex;align-items:center;gap:2px;vertical-align:middle}.mx u{text-decoration:none;font-size:1.2em}
+.fish{font-size:64px;text-align:center}.grid{display:flex;flex-wrap:wrap;gap:6px;font-size:30px}
+.lnk{background:none;border:0;color:var(--pri);font-size:16px;text-decoration:underline;cursor:pointer;font-family:inherit}
+.row{display:flex;gap:8px}.row .btn{margin:6px 0}
+textarea{width:100%;height:90px;font-family:inherit;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:14px;direction:ltr}
+</style></head><body><div class="wrap" id="app"></div>
+<script>
+// ---------- question generators (shared by app and answer-key export) ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gcd(a,b){return b?gcd(b,a%b):a}
+function mk(seed){const r=mulberry32(seed);const R={ri:(a,b)=>a+Math.floor(r()*(b-a+1)),pick:a=>a[Math.floor(r()*a.length)]};R.shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};return R}
+const fmt=x=>String(Number(Number(x).toFixed(6)));
+const M=s=>'<span class="m" dir="ltr">'+s+'</span>';
+const F=(n,d)=>'<span class="fr" dir="ltr"><b>'+n+'</b><i></i><b>'+d+'</b></span>';
+const MX=(w,n,d)=>'<span class="mx" dir="ltr"><u>'+w+'</u>'+F(n,d)+'</span>';
+const T=(a,b)=>fmt(a)+' '+b;
+const things=['עוגיות','כדורים','קלפים','מדבקות','גולות','בלונים'];
+function num(t,a,h,e){return{k:'num',t,a,h,e}}
+function frac(t,n,d,h,e){return{k:'frac',t,a:[n,d],h,e}}
+function mix(t,w,n,d,h,e){return{k:'mix',t,a:[w,n,d],h,e}}
+function ch(t,opts,ai,h,e){return{k:'ch',t,opts,a:ai,h,e}}
+function shuf(R,right,wrong){const o=R.shuffle([right].concat(wrong));return[o,o.indexOf(right)]}
+// builders
+const B={
+digitVal(R,lv){const w=R.ri(1,9);let t=R.ri(1,9),h=lv?R.ri(1,9):0;const n=lv?w+'.'+t+h:w+'.'+t;const place=lv?R.pick(['t','h']):'t';
+ const d=place==='t'?t:h;const val=place==='t'?d/10:d/100;const nm=place==='t'?'עשיריות':'מאיות';
+ const [o,i]=shuf(R,fmt(val),[String(d),fmt(d*10),fmt(place==='t'?d/100:d/10)].filter((x,ix,ar)=>ar.indexOf(x)===ix&&x!==fmt(val)));
+ return ch('מה ערך הספרה '+d+' במספר '+M(n)+'?',o,i,'הספרה '+d+' נמצאת במקום ה'+nm+'.','הספרה '+d+' נמצאת במקום ה'+nm+', לכן הערך שלה הוא '+M(fmt(val))+'.')},
+compose(R,lv){const w=R.ri(1,9),t=R.ri(1,9);if(!lv)return num('כתוב כמספר עשרוני: '+w+' שלמים ו-'+t+' עשיריות',+(w+'.'+t),'השלמים לפני הנקודה, העשיריות אחריה.',M(w+'.'+t));
+ const h=R.ri(1,9);return num('כתוב כמספר עשרוני: '+w+' שלמים, '+t+' עשיריות ו-'+h+' מאיות',+(w+'.'+t+h),'אחרי הנקודה: קודם עשיריות ואז מאיות.',M(w+'.'+t+h))},
+cmp(R,lv){let a,b;if(lv===0){const w=R.ri(1,9);a=w+'.'+R.ri(1,4);b=w+'.'+R.ri(5,9)}else if(lv===1){a=R.ri(1,5)+'.'+R.ri(1,9);b=R.ri(6,9)+'.'+R.ri(1,9)}else{const w=R.ri(1,9);const x=R.ri(1,9);a=w+'.'+x;b=w+'.'+R.ri(0,x-1<0?0:x-1)+R.ri(1,9);if(+b>=+a)b=w+'.0'+R.ri(1,9)}
+ const g=Math.max(+a,+b);const [o,i]=shuf(R,fmt(g),[fmt(Math.min(+a,+b))]);return ch('איזה מספר גדול יותר?',o,i,'משווים קודם את השלמים, אחר כך את העשיריות.',M(a)+' ו-'+M(b)+': הגדול הוא '+M(fmt(g))+'. משווים ספרה ספרה מהשמאל.')},
+addDec(R,lv){let a,b,op='+';if(lv===0){a=R.ri(11,49)/10;b=R.ri(11,49)/10;while(((a*10)%10)+((b*10)%10)>=10){b=R.ri(11,49)/10}}else if(lv===1){a=R.ri(30,99)/10;b=R.ri(11,29)/10;op='-'}else{a=R.ri(120,990)/100;b=R.ri(110,290)/100;op=R.pick(['+','-'])}
+ const r=op==='+'?a+b:a-b;return num('חשב: '+M(fmt(a)+' '+op+' '+fmt(b)),Math.round(r*100)/100,'כותבים בטור, נקודה מתחת לנקודה.','כותבים בטור כך שהנקודות אחת מתחת לשנייה. התוצאה: '+M(fmt(r)))},
+tenp(R,lv){const n=R.pick([3.4,2.5,0.7,1.2,4.6,5.1,0.36,2.75,6.04]);const op=lv===0?R.pick(['*10','/10']):R.pick(['*100','/100','*1000','/10','*10']);const k=+op.slice(1);const r=op[0]==='*'?n*k:n/k;
+ return num('חשב: '+M(fmt(n)+' '+(op[0]==='*'?'×':'÷')+' '+k),Math.round(r*1e6)/1e6,'כפל ב-10 מזיז את הנקודה ימינה, חילוק ב-10 מזיז שמאלה. כל אפס הוא צעד אחד.','כל אפס ב-'+k+' מזיז את הנקודה צעד אחד '+(op[0]==='*'?'ימינה':'שמאלה')+': '+M(fmt(r)))},
+mul(R,lv){let a,b;if(lv===0){a=R.ri(11,24);b=R.ri(2,4)}else if(lv===1){a=R.ri(25,69);b=R.ri(3,8)}else if(lv===2){a=R.ri(12,35);b=R.ri(11,29)}else if(lv===3){a=R.ri(101,399);b=R.ri(12,29)}else{a=R.ri(1100,3499);b=R.ri(102,303)}
+ return num('חשב: '+M(a+' × '+b),a*b,'כתוב בטור. כפול קודם את ספרת האחדות, אחר כך העשרות (שורה חדשה, מתחילים באפס), ובסוף חבר.','פותרים בטור: מכפילים כל ספרה, מחברים את השורות. '+M(a+' × '+b+' = '+(a*b)))},
+div(R,lv){let d,q;if(lv===0){d=R.ri(2,5);q=R.ri(12,40)}else if(lv===1){d=R.ri(3,9);q=R.ri(40,190)}else if(lv===2){d=R.ri(11,19);q=R.ri(11,29)}else if(lv===3){d=R.ri(12,29);q=R.ri(30,99)}else{d=R.ri(12,29);q=R.ri(120,320)}
+ return num('חשב: '+M((d*q)+' ÷ '+d),q,'חילוק ארוך: כמה פעמים '+d+' נכנס בספרות הראשונות? כתוב, הכפל, החסר, והורד ספרה.','בודקים בכפל: '+M(q+' × '+d+' = '+(d*q))+'. לכן '+M((d*q)+' ÷ '+d+' = '+q))},
+share(R,lv){const d=R.ri(2,6),q=R.ri(lv?5:3,lv?12:8);const th=R.pick(things);return num(d+' ילדים מחלקים '+(d*q)+' '+th+' שווה בשווה. כמה '+th+' מקבל כל ילד?',q,'חילוק: '+M((d*q)+' ÷ '+d),'כל ילד מקבל '+M((d*q)+' ÷ '+d+' = '+q))},
+pizza1(R,lv){const n=lv===0?R.ri(2,4):lv===1?R.ri(5,8):R.ri(9,12);return frac('מחלקים פיצה אחת שווה בשווה ל-'+n+' ילדים. איזה חלק מהפיצה מקבל כל ילד?',1,n,'מחלקים ל-'+n+' חלקים שווים. כל ילד מקבל חלק אחד מתוך '+n+'.','כל ילד מקבל חלק אחד מתוך '+n+': '+F(1,n)+'. כלומר '+M('1 ÷ '+n+' = ')+F(1,n))},
+quot(R,lv){const b=R.ri(3,lv?12:7),a=R.ri(1,b-1);return frac('כתוב את תוצאת החילוק כשבר: '+M(a+' ÷ '+b),a,b,'המחולק (המספר הראשון) הוא המונה למעלה, המחלק הוא המכנה למטה.',M(a+' ÷ '+b+' = ')+F(a,b)+'. המספר הראשון למעלה והשני למטה.')},
+readQ(R,lv){const b=R.ri(3,9),a=R.ri(1,b-1);const right=M(a+' ÷ '+b),[o,i]=shuf(R,right,[M(b+' ÷ '+a),M(a+' × '+b),M(a+' - '+b)]);return ch('השבר '+F(a,b)+' שווה לתוצאה של איזה חילוק?',o,i,'שבר הוא חילוק: המונה למעלה מחולק במכנה.',F(a,b)+' = '+M(a+' ÷ '+b))},
+story(R,lv){const b=R.ri(3,8),a=R.ri(2,b-1);const th=R.pick(['פיצות','שוקולדים','עוגות','לחמניות']);return frac(a+' '+th+' מחולקות שווה בשווה ל-'+b+' ילדים. איזה חלק משלם מקבל כל ילד?',a,b,'מחלקים '+a+' ב-'+b+' וכותבים כשבר.',M(a+' ÷ '+b+' = ')+F(a,b)+'. כל ילד מקבל '+F(a,b)+' משלם.')},
+big(R,lv){const b=R.ri(2,6),a=b*R.ri(1,2)+R.ri(1,b-1);const th=R.pick(['ליטר מים','ק"ג תפוחים','מטר חבל']);return frac(a+' '+th+' מחולקים שווה בשווה ל-'+b+' כלים. כמה בכל כלי? כתוב כשבר',a,b,'גם כשהמונה גדול מהמכנה כותבים: מחולק למעלה, מחלק למטה.',M(a+' ÷ '+b+' = ')+F(a,b)+'. השבר גדול מ-1 וזה בסדר גמור.')},
+toMix(R,lv){const b=R.ri(2,6),w=R.ri(1,4),r=R.ri(1,b-1);const a=w*b+r;return mix('כתוב את '+F(a,b)+' כמספר מעורב',w,r,b,'כמה פעמים '+b+' נכנס ב-'+a+'? זה מספר השלמים. מה שנשאר הוא המונה.',F(a,b)+' = '+M(a+' ÷ '+b)+': יוצא '+w+' ושארית '+r+'. לכן '+MX(w,r,b))},
+toImp(R,lv){const b=R.ri(2,6),w=R.ri(1,4),r=R.ri(1,b-1);return frac('כתוב את '+MX(w,r,b)+' כשבר',w*b+r,b,'כפול את השלמים במכנה והוסף את המונה: '+M(w+' × '+b+' + '+r),MX(w,r,b)+': '+M(w+' × '+b+' + '+r+' = '+(w*b+r))+', ולכן '+F(w*b+r,b))},
+rem(R,lv){const b=R.ri(3,9),w=R.ri(1,lv?9:4),r=R.ri(1,b-1);const a=w*b+r;return mix('חשב '+M(a+' ÷ '+b)+' וכתוב את התוצאה כמספר מעורב',w,r,b,'קודם חילוק רגיל עם שארית. השארית הולכת למעלה, המחלק למטה.',M(a+' ÷ '+b)+': '+w+' ושארית '+r+'. תוצאה: '+MX(w,r,b))},
+f2d(R,lv){const L=lv===0?[[1,2,.5],[1,10,.1],[3,10,.3],[1,4,.25],[3,4,.75],[1,5,.2]]:[[2,5,.4],[4,5,.8],[7,10,.7],[9,20,.45],[3,20,.15],[7,25,.28],[1,8,.125],[13,20,.65]];const x=R.pick(L);
+ return num('כתוב כמספר עשרוני: '+F(x[0],x[1]),x[2],'חילוק: '+M(x[0]+' ÷ '+x[1])+'. או הרחב את המכנה ל-10 או ל-100.',F(x[0],x[1])+' = '+M(x[0]+' ÷ '+x[1]+' = '+fmt(x[2])))},
+d2f(R,lv){const L=lv===0?[[.5,1,2],[.3,3,10],[.7,7,10],[.25,1,4],[.2,1,5],[.9,9,10]]:[[.75,3,4],[.6,3,5],[.4,2,5],[.35,7,20],[.45,9,20],[.8,4,5],[.15,3,20],[.04,1,25]];const x=R.pick(L);
+ return frac('כתוב כשבר: '+M(fmt(x[0]))+' (אפשר גם בלי לצמצם)',x[1],x[2],'עשיריות: מכנה 10. מאיות: מכנה 100. אחר כך אפשר לצמצם.',M(fmt(x[0]))+' = '+F(x[1],x[2])+' אחרי צמצום.')},
+part(R,lv){const d=R.pick(lv?[3,4,5,6,8]:[2,4,5,10]),n=lv?R.ri(2,d-1):1,q=R.ri(2,lv?9:5)*d;return num('כמה זה '+F(n,d)+' מתוך '+q+'?',q/d*n,'מחלקים ב-'+d+' ומכפילים ב-'+n+'.','מחלקים: '+M(q+' ÷ '+d+' = '+(q/d))+(n>1?' ומכפילים ב-'+n+': '+M(q/d*n):''))},
+word2(R,lv){const b=R.pick([2,4,5]);let a;do{a=R.ri(b+1,3*b)}while(a%b===0);const c=R.pick([['מטר חבל נחתכים','חלקים שווים','מטר בכל חלק'],['ק"ג קמח נארזים','שקיות שוות','ק"ג בכל שקית'],['ליטר מיץ מחולקים','כוסות שוות','ליטר בכל כוס']]);return num(a+' '+c[0]+' ל-'+b+' '+c[1]+'. כמה '+c[2]+'? כתוב כמספר עשרוני',a/b,'חילוק: '+M(a+' ÷ '+b),M(a+' ÷ '+b+' = '+fmt(a/b)))},
+word3(R,lv){const b=R.ri(3,7),w=R.ri(1,3),r=R.ri(1,b-1),a=w*b+r;return mix(a+' ק"ג תפוחים מחולקים ל-'+b+' שקיות שוות. כמה ק"ג בכל שקית? כתוב כמספר מעורב',w,r,b,'חילוק עם שארית: השארית הולכת למעלה.',M(a+' ÷ '+b)+' = '+MX(w,r,b))}
+};
+// ---------- sets ----------
+const seq=(...a)=>a;
+const SETS=[
+{id:'A1',tr:'A',n:'עשרוניים: ערך הספרה',i:'<p>מספר עשרוני יש לו נקודה. מה שלפני הנקודה הם שלמים. אחרי הנקודה: קודם <b>עשיריות</b> ואז <b>מאיות</b>.</p><p>דוגמה: '+M('3.47')+' הם 3 שלמים, 4 עשיריות ו-7 מאיות.</p>',g:(R)=>[B.compose(R,0),B.compose(R,0),B.digitVal(R,0),B.digitVal(R,0),B.compose(R,1),B.digitVal(R,1),B.compose(R,1),B.digitVal(R,1)]},
+{id:'A2',tr:'A',n:'מי גדול יותר',i:'<p>כדי להשוות שני מספרים עשרוניים מסתכלים קודם על השלמים. אם הם שווים, משווים עשיריות. אם גם הן שוות, משווים מאיות.</p><p>דוגמה: '+M('2.7')+' גדול מ-'+M('2.3')+' כי 7 עשיריות יותר מ-3 עשיריות.</p>',g:(R)=>[B.cmp(R,0),B.cmp(R,0),B.cmp(R,0),B.cmp(R,1),B.cmp(R,1),B.cmp(R,1),B.cmp(R,2),B.cmp(R,2)]},
+{id:'A3',tr:'A',n:'חיבור וחיסור עשרוניים',i:'<p>מחברים ומחסרים עשרוניים בטור, כמו מספרים רגילים. הכלל היחיד: <b>הנקודה מתחת לנקודה</b>.</p><p>דוגמה: '+M('2.4 + 1.5 = 3.9')+'</p>',g:(R)=>[B.addDec(R,0),B.addDec(R,0),B.addDec(R,0),B.addDec(R,1),B.addDec(R,1),B.addDec(R,1),B.addDec(R,2),B.addDec(R,2)]},
+{id:'A4',tr:'A',n:'כפל וחילוק ב-10, 100, 1000',i:'<p>כפל ב-10 מזיז את הנקודה צעד אחד <b>ימינה</b>. חילוק ב-10 מזיז אותה צעד אחד <b>שמאלה</b>. ב-100 שני צעדים, ב-1000 שלושה.</p><p>דוגמה: '+M('3.4 × 10 = 34')+'</p>',g:(R)=>[B.tenp(R,0),B.tenp(R,0),B.tenp(R,0),B.tenp(R,0),B.tenp(R,1),B.tenp(R,1),B.tenp(R,1),B.tenp(R,1)]},
+{id:'A5',tr:'A',n:'כפל ארוך: שתי ספרות כפול ספרה',i:'<p>כפל בטור: כופלים קודם את האחדות, אחר כך את העשרות, ומוסיפים את מה שעבר הלאה.</p><p>דוגמה: '+M('23 × 4')+': 3 כפול 4 הוא 12, כותבים 2 וזוכרים 1. 2 כפול 4 הוא 8, ועוד 1 הוא 9. התוצאה '+M('92')+'.</p>',g:(R)=>[B.mul(R,0),B.mul(R,0),B.mul(R,0),B.mul(R,0),B.mul(R,1),B.mul(R,1),B.mul(R,1),B.mul(R,1)]},
+{id:'A6',tr:'A',n:'כפל ארוך: שתי ספרות כפול שתיים',i:'<p>כשהמספר השני בן שתי ספרות עושים שתי שורות. שורה ראשונה: כפל באחדות. שורה שנייה: כפל בעשרות, ומתחילים בה באפס. בסוף מחברים.</p><p>דוגמה: '+M('12 × 13')+': שורה 1 היא '+M('36')+', שורה 2 היא '+M('120')+', וביחד '+M('156')+'.</p>',g:(R)=>[B.mul(R,1),B.mul(R,1),B.mul(R,2),B.mul(R,2),B.mul(R,2),B.mul(R,3),B.mul(R,3),B.mul(R,3)]},
+{id:'A7',tr:'A',n:'חילוק ארוך: מחלק חד-ספרתי',i:'<p>חילוק ארוך הולך בצעדים: מחלקים, מכפילים, מחסרים, מורידים ספרה, וחוזרים. ובסוף אפשר תמיד לבדוק בכפל.</p><p>דוגמה: '+M('84 ÷ 4')+': 4 נכנס ב-8 פעמיים. נשאר 0, מורידים 4, ו-4 נכנס ב-4 פעם אחת. התוצאה '+M('21')+'.</p>',g:(R)=>[B.div(R,0),B.div(R,0),B.div(R,0),B.div(R,0),B.div(R,1),B.div(R,1),B.div(R,1),B.div(R,1)]},
+{id:'A8',tr:'A',n:'חילוק ארוך: מחלק דו-ספרתי',i:'<p>זה אותו חילוק ארוך, רק שהמחלק גדול יותר. כדי לדעת כמה פעמים הוא נכנס, אפשר לנחש ולבדוק, או לכתוב לעצמך בצד כמה זה פעם אחת, פעמיים, שלוש פעמים.</p><p>דוגמה: '+M('96 ÷ 12 = 8')+' כי '+M('12 × 8 = 96')+'.</p>',g:(R)=>[B.div(R,2),B.div(R,2),B.div(R,2),B.div(R,2),B.div(R,3),B.div(R,3),B.div(R,3),B.div(R,3)]},
+{id:'A9',tr:'A',n:'אתגר מעורב: כפל וחילוק גדולים',i:'<p>סט אחרון של הבסיס. תרגילים גדולים יותר, אבל הצעדים אותם צעדים. קח את הזמן וכתוב בטור על דף.</p>',g:(R)=>[B.mul(R,2),B.div(R,2),B.mul(R,3),B.div(R,3),B.mul(R,3),B.div(R,4),B.mul(R,4),B.div(R,4)]},
+{id:'B1',tr:'B',n:'חלוקה שווה',i:'<p>חלוקה שווה בשווה אומרת: לכל אחד אותה כמות. כדי לדעת כמה מקבל כל אחד, מחלקים.</p><p>דוגמה: 12 עוגיות ל-3 ילדים: '+M('12 ÷ 3 = 4')+'. כל ילד מקבל 4.</p>',g:(R)=>[B.share(R,0),B.share(R,0),B.share(R,0),B.share(R,0),B.share(R,1),B.share(R,1),B.share(R,1),B.share(R,1)]},
+{id:'B2',tr:'B',n:'מחלקים אחד',i:'<p>מה אם יש רק פיצה <b>אחת</b> ולא מספיק לכל ילד פיצה שלמה? חותכים אותה לחלקים שווים. אם יש 4 ילדים, חותכים ל-4 חלקים, וכל ילד מקבל חלק אחד מתוך 4. זה '+F(1,4)+'.</p><p>המספר למטה הוא לכמה חלקים חתכנו, והמספר למעלה הוא כמה חלקים לקחנו.</p>',g:(R)=>[B.pizza1(R,0),B.pizza1(R,0),B.pizza1(R,0),B.pizza1(R,1),B.pizza1(R,1),B.pizza1(R,1),B.pizza1(R,1),B.pizza1(R,2)]},
+{id:'B3',tr:'B',n:'שבר הוא חילוק',i:'<p>זה הסוד של היחידה: <b>שבר הוא חילוק</b>. קו השבר הוא סימן חילוק.</p><p>'+M('3 ÷ 4 = ')+F(3,4)+'. המספר הראשון למעלה, והשני למטה.</p>',g:(R)=>[B.quot(R,0),B.quot(R,0),B.readQ(R,0),B.quot(R,0),B.quot(R,1),B.readQ(R,1),B.quot(R,1),B.readQ(R,1)]},
+{id:'B4',tr:'B',n:'חילוק בסיפורים',i:'<p>כשמחלקים כמה דברים בין כמה ילדים והמספר של הדברים קטן מהמספר של הילדים, כל ילד מקבל חלק משלם.</p><p>דוגמה: 3 פיצות ל-4 ילדים. '+M('3 ÷ 4 = ')+F(3,4)+' מפיצה לכל ילד.</p>',g:(R)=>[B.story(R,0),B.story(R,0),B.pizza1(R,1),B.story(R,0),B.story(R,1),B.readQ(R,1),B.story(R,1),B.story(R,1)]},
+{id:'B5',tr:'B',n:'שברים גדולים מ-1',i:'<p>מה אם יש יותר דברים מילדים? גם אז מחלקים וכותבים כשבר. המונה פשוט גדול מהמכנה.</p><p>דוגמה: 7 ליטר ל-2 כלים: '+M('7 ÷ 2 = ')+F(7,2)+'. זה שלושה ליטר וחצי.</p>',g:(R)=>[B.big(R,0),B.big(R,0),B.quot(R,0),B.big(R,0),B.big(R,1),B.big(R,1),B.big(R,1),B.big(R,1)]},
+{id:'B6',tr:'B',n:'מספר מעורב ושבר',i:'<p>שבר כמו '+F(7,2)+' אפשר לכתוב גם כמספר מעורב: שלמים ועוד שבר. '+M('7 ÷ 2')+' הוא 3 ושארית 1, לכן '+MX(3,1,2)+'.</p><p>ובחזרה: '+MX(3,1,2)+' הוא '+M('3 × 2 + 1 = 7')+' חצאים, כלומר '+F(7,2)+'.</p>',g:(R)=>[B.toMix(R,0),B.toMix(R,0),B.toImp(R,0),B.toMix(R,0),B.toImp(R,0),B.toMix(R,0),B.toImp(R,0),B.toImp(R,0)]},
+{id:'B7',tr:'B',n:'חילוק עם שארית',i:'<p>כשחילוק לא יוצא מדויק, השארית לא נזרקת. היא הופכת לשבר: השארית למעלה והמחלק למטה.</p><p>דוגמה: '+M('17 ÷ 5')+': 3 ושארית 2, לכן '+MX(3,2,5)+'.</p>',g:(R)=>[B.rem(R,0),B.rem(R,0),B.rem(R,0),B.rem(R,0),B.rem(R,1),B.rem(R,1),B.rem(R,1),B.rem(R,1)]},
+{id:'B8',tr:'B',n:'משבר לעשרוני',i:'<p>מכיוון ששבר הוא חילוק, כדי לקבל עשרוני מחלקים את המונה במכנה.</p><p>דוגמה: '+F(1,4)+' הוא '+M('1 ÷ 4 = 0.25')+'. עוד דרך: מרחיבים את המכנה ל-10 או ל-100.</p>',g:(R)=>[B.f2d(R,0),B.f2d(R,0),B.f2d(R,0),B.f2d(R,0),B.f2d(R,1),B.f2d(R,1),B.f2d(R,1),B.f2d(R,1)]},
+{id:'B9',tr:'B',n:'מעשרוני לשבר',i:'<p>עשיריות הן שבר עם מכנה 10, ומאיות הן שבר עם מכנה 100. ואחר כך אפשר לצמצם.</p><p>דוגמה: '+M('0.5')+' הוא '+F(5,10)+', וזה אותו דבר כמו '+F(1,2)+'.</p>',g:(R)=>[B.d2f(R,0),B.d2f(R,0),B.d2f(R,0),B.d2f(R,0),B.d2f(R,1),B.d2f(R,1),B.d2f(R,1),B.d2f(R,1)]},
+{id:'B10',tr:'B',n:'חלק מכמות',i:'<p>כדי למצוא חלק מכמות מחלקים במכנה ומכפילים במונה.</p><p>דוגמה: '+F(3,4)+' מ-20: '+M('20 ÷ 4 = 5')+' ואחר כך '+M('5 × 3 = 15')+'.</p>',g:(R)=>[B.part(R,0),B.part(R,0),B.part(R,0),B.part(R,0),B.part(R,1),B.part(R,1),B.part(R,1),B.part(R,1)]},
+{id:'B11',tr:'B',n:'בעיות מילוליות קלות',i:'<p>בבעיות מילוליות קוראים לאט ושואלים: מה מחלקים, ובין כמה? ואז כותבים חילוק.</p>',g:(R)=>[B.share(R,0),B.story(R,0),B.big(R,0),B.share(R,1),B.story(R,1),B.big(R,1),B.pizza1(R,1),B.story(R,1)]},
+{id:'B12',tr:'B',n:'בעיות מילוליות: צעד קדימה',i:'<p>עכשיו התשובה היא לפעמים עשרוני ולפעמים מספר מעורב. כשכתוב מה צורת התשובה, כותבים כך.</p><p>דוגמה: 5 מטר ל-4 חלקים: '+M('5 ÷ 4 = 1.25')+'.</p>',g:(R)=>[B.word2(R,0),B.word3(R,0),B.word2(R,0),B.word3(R,0),B.word2(R,0),B.word3(R,0),B.word2(R,0),B.word3(R,0)]},
+{id:'B13',tr:'B',n:'חזרה מעורבת',i:'<p>סט חזרה על כל מה שלמדנו ביחידה. כל תרגיל מזכיר משהו שכבר עשית.</p>',g:(R)=>[B.quot(R,1),B.toMix(R,0),B.rem(R,0),B.f2d(R,0),B.d2f(R,0),B.part(R,0),B.big(R,1),B.share(R,1)]},
+{id:'B14',tr:'B',n:'סיכום היחידה',i:'<p>הסט האחרון של היחידה. אם משהו מסתבך, הרמזים כאן בשבילך. כל הכבוד על ההגעה לכאן.</p>',g:(R)=>[B.story(R,1),B.toImp(R,0),B.rem(R,1),B.f2d(R,1),B.d2f(R,1),B.part(R,1),B.word2(R,0),B.word3(R,0)]}
+];
+const ORDER=['B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
+function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
+if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
+const KEY='giladica-v1';
+let S={done:{},runs:{},fish:0,log:[]};
+try{const x=JSON.parse(localStorage.getItem(KEY));if(x)S=Object.assign(S,x)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=document.getElementById('app');
+const FISH=['🐟','🐠','🐡','🦈','🐙','🦀','🐳','🦑','🐬','🦞','🐋','🦭','🐢','🪼','🦐','🐚'];
+const nextId=()=>ORDER.find(id=>!S.done[id])||null;
+const setOf=id=>SETS.find(s=>s.id===id);
+let cur=null;
+function home(){cur=null;const nx=nextId();const nd=Object.keys(S.done).length;
+ let h='<div class="top"><h1>גלעדיקה 🎣</h1></div><div class="card"><b>'+nd+' מתוך '+SETS.length+' סטים הושלמו</b><div class="prog"><i style="width:'+(nd/SETS.length*100)+'%"></i></div>'+
+ (nx?'<button class="btn big" onclick="openSet(\''+nx+'\')">הסט של היום: '+setOf(nx).n+'</button><div style="color:#5d7a85;font-size:15px">כל סט לוקח בערך 10 דקות. אפשר לעצור באמצע ולחזור.</div>':'<div class="fish">🏆</div><b>סיימת את כל הסטים! אפשר לחזור לכל סט ולנסות שוב.</b>')+'</div>';
+ h+='<div class="card"><b>האוסף שלי</b><div class="grid">'+(S.fish?Array.from({length:S.fish},(_,i)=>FISH[i%FISH.length]).join(''):'<span style="font-size:16px;color:#5d7a85">כל סט שמסיימים מוסיף דג חדש.</span>')+'</div></div>';
+ for(const tr of ['B','A']){h+='<div class="sec-h">'+(tr==='B'?'שבר כמנת חילוק (החומר מהכיתה)':'מחזקים את הבסיס')+'</div>';
+  for(const id of ORDER.filter(i=>setOf(i).tr===tr)){const s=setOf(id),d=S.done[id];h+='<button class="set'+(d?' done':'')+(id===nx?' next':'')+'" onclick="openSet(\''+id+'\')"><span class="no">'+(d?'✓':id)+'</span><span>'+s.n+(d?'<small>עשית '+(S.runs[id]||1)+' פעמים</small>':'')+'</span>'+(id===nx?'<span class="tag">הבא</span>':'')+'</button>'}}
+ h+='<p style="text-align:center"><button class="lnk" onclick="parent_()">להורה</button></p>';$.innerHTML=h;window.scrollTo(0,0)}
+function openSet(id){const s=setOf(id);const v=S.runs[id]||0;
+ $.innerHTML='<div class="top"><button class="lnk" onclick="home()">חזרה</button></div><h2>'+id+'. '+s.n+'</h2><div class="card">'+s.i+'</div><div class="box">8 שאלות קצרות. אם משהו לא יוצא, יש רמז. אין ציון ואין שעון.</div><button class="btn big" onclick="start(\''+id+'\')">יאללה, מתחילים</button>'}
+function start(id){cur={id,v:S.runs[id]||0,qs:null,i:0,first:0,tries:0,sel:null,res:[]};cur.qs=build(id,cur.v);show()}
+function inputs(q){if(q.k==='ch')return q.opts.map((o,i)=>'<button class="opt" data-i="'+i+'" onclick="pickOpt('+i+')">'+o+'</button>').join('');
+ const f=(id,p)=>'<input class="sm" id="'+id+'" inputmode="numeric" placeholder="'+p+'" autocomplete="off">';
+ if(q.k==='num')return '<input class="in" id="a0" inputmode="decimal" placeholder="התשובה" autocomplete="off">';
+ if(q.k==='frac')return '<div class="ans"><span class="fr"><input class="sm" id="a0" inputmode="numeric" placeholder="מונה"><i></i><input class="sm" id="a1" inputmode="numeric" placeholder="מכנה"></span></div>';
+ return '<div class="ans">'+f('a0','שלמים')+'<span class="fr">'+f("a1","מונה")+'<i></i>'+f("a2","מכנה")+'</span></div>'}
+function show(){const q=cur.qs[cur.i];cur.tries=0;cur.sel=null;
+ $.innerHTML='<div class="top"><button class="lnk" onclick="if(confirm(\'לעצור? ההתקדמות בסט הזה לא תישמר.\'))home()">עצירה</button><span>'+(cur.i+1)+' מתוך 8</span></div><div class="prog"><i style="width:'+(cur.i/8*100)+'%"></i></div><div class="card"><div class="q">'+q.t+'</div>'+inputs(q)+'<div id="fb"></div><button class="btn" id="go" onclick="check()">בדיקה</button></div>';
+ const a=document.getElementById('a0');if(a&&q.k!=='ch')a.focus();
+ $.querySelectorAll('input').forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')check()}))}
+function pickOpt(i){cur.sel=i;$.querySelectorAll('.opt').forEach(b=>b.classList.toggle('sel',+b.dataset.i===i))}
+const val=id=>{const e=document.getElementById(id);return e?e.value.trim().replace(',','.'):''};
+function correct(q){if(q.k==='ch')return cur.sel===q.a;
+ if(q.k==='num'){const x=parseFloat(val('a0'));return isFinite(x)&&Math.abs(x-q.a)<1e-6}
+ if(q.k==='frac'){const n=parseInt(val('a0')),d=parseInt(val('a1'));return n>0&&d>0&&n*q.a[1]===d*q.a[0]}
+ const w=parseInt(val('a0')||'0'),n=parseInt(val('a1')),d=parseInt(val('a2'));return w===q.a[0]&&n>=0&&d>0&&n*q.a[2]===d*q.a[1]&&(n<d||n===0)}
+function answerHtml(q){if(q.k==='ch')return q.opts[q.a];if(q.k==='num')return M(fmt(q.a));if(q.k==='frac')return F(q.a[0],q.a[1]);return q.a[1]?MX(q.a[0],q.a[1],q.a[2]):M(q.a[0])}
+function check(){const q=cur.qs[cur.i];const fb=document.getElementById('fb'),go=document.getElementById('go');
+ if(go.dataset.next){return nextQ()}
+ if(q.k==='ch'&&cur.sel===null){fb.innerHTML='<div class="msg no">בחר תשובה ואז לחץ על בדיקה.</div>';return}
+ if(q.k!=='ch'&&!val('a0')){fb.innerHTML='<div class="msg no">כתוב את התשובה ואז לחץ על בדיקה.</div>';return}
+ cur.tries++;const ok=correct(q);
+ if(ok){if(cur.tries===1)cur.first++;cur.res.push(cur.tries===1?1:2);fb.innerHTML='<div class="msg ok">'+['יפה!','נכון!','מצוין!','בדיוק!'][cur.i%4]+(cur.tries>1?' ניסית שוב והצלחת, וזה מה שחשוב.':'')+'</div>';fin(go)}
+ else if(cur.tries===1){fb.innerHTML='<div class="msg no">כמעט, נסה שוב. 💪<br>רמז: '+q.h+'</div>'}
+ else{cur.res.push(0);fb.innerHTML='<div class="msg no">זה קורה. הנה איך עושים את זה:<br>'+q.e+'<br>התשובה: '+answerHtml(q)+'</div>';fin(go)}}
+function fin(go){go.textContent=cur.i<7?'לשאלה הבאה':'סיום הסט';go.dataset.next=1;$.querySelectorAll('input').forEach(x=>x.disabled=true);$.querySelectorAll('.opt').forEach(x=>x.disabled=true)}
+function nextQ(){if(cur.i<7){cur.i++;show();window.scrollTo(0,0)}else done()}
+function done(){const id=cur.id;const first=cur.first;S.done[id]=Math.max(S.done[id]||0,first);S.runs[id]=(S.runs[id]||0)+1;S.fish++;S.log.push({d:new Date().toISOString().slice(0,16),id,first,n:8,res:cur.res});S.log=S.log.slice(-200);save();
+ const f=FISH[(S.fish-1)%FISH.length];const nx=nextId();
+ $.innerHTML='<div class="card" style="text-align:center"><div class="fish">'+f+'</div><h2>סיימת את הסט!</h2><p>קיבלת דג חדש לאוסף. כל הכבוד על ההתמדה.</p>'+(nx?'<button class="btn" onclick="openSet(\''+nx+'\')">לסט הבא: '+setOf(nx).n+'</button>':'')+'<button class="btn sec" onclick="start(\''+id+'\')">עוד פעם עם תרגילים חדשים</button><button class="btn sec" onclick="home()">למסך הראשי</button></div>'}
+function parent_(){const rows=S.log.slice(-15).reverse().map(l=>'<div>'+l.d.replace('T',' ')+' | '+l.id+' | '+setOf(l.id).n+' | '+l.first+'/8 בניסיון ראשון</div>').join('')||'עדיין אין נתונים.';
+ const tot=S.log.length?Math.round(S.log.reduce((a,l)=>a+l.first,0)/(S.log.length*8)*100):0;
+ const txt=S.log.slice(-5).map(l=>l.id+' '+l.first+'/8').join(', ');
+ $.innerHTML='<div class="top"><button class="lnk" onclick="home()">חזרה</button></div><h2>להורה</h2><div class="card">הנתונים נשמרים רק בטלפון הזה ולא נשלחים לשום מקום. גלעד לא רואה כאן ציונים.<br><b>סטים שהושלמו: '+Object.keys(S.done).length+' מתוך '+SETS.length+'. הצלחה בניסיון ראשון: '+tot+'%.</b></div><div class="card" style="font-size:15px">'+rows+'</div><button class="btn sec" onclick="copySum()">העתק סיכום לוואטסאפ</button><button class="btn sec" onclick="bk()">גיבוי ושחזור</button><div id="bk"></div><button class="lnk" onclick="if(confirm(\'למחוק את כל ההתקדמות?\')){localStorage.removeItem(KEY);S={done:{},runs:{},fish:0,log:[]};home()}">איפוס</button>';window._txt=txt}
+function copySum(){const t='גלעדיקה: '+Object.keys(S.done).length+'/'+SETS.length+' סטים. אחרונים בניסיון ראשון: '+window._txt;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('הועתק'),()=>prompt('העתק:',t))}
+function bk(){document.getElementById('bk').innerHTML='<textarea id="bt">'+JSON.stringify(S)+'</textarea><button class="btn sec" onclick="try{S=Object.assign({done:{},runs:{},fish:0,log:[]},JSON.parse(document.getElementById(\'bt\').value));save();home()}catch(e){alert(\'לא תקין\')}">שחזר מהטקסט</button>'}
+home();
+</script></body></html>
