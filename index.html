@@ -37,6 +37,36 @@ input.sm{width:72px;font-size:24px;padding:10px 4px;border:2px solid var(--line)
 [data-theme=dark]{--bg:#10191e;--card:#1a272d;--ink:#e3eef2;--mut:#8ba6b0;--pri:#4fc3e3;--pri2:#153039;--ok:#4cc38a;--okbg:#123528;--warn:#e0a458;--warnbg:#3a2c12;--line:#2b414a}
 .row{display:flex;gap:8px}.row .btn{margin:6px 0}
 textarea{width:100%;height:90px;font-family:inherit;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:14px;direction:ltr;background:var(--card);color:var(--ink)}
+#prt{position:fixed;inset:0;z-index:99999;background:#fff;color:#000;overflow:auto;direction:rtl;font-family:inherit}
+#prt .pbar{position:sticky;top:0;background:#eef6f9;padding:10px;border-bottom:1px solid #9bb;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#prt .pbar .btn{width:auto;margin:0;padding:8px 14px;font-size:16px}
+#prt .pn2{font-size:13px;color:#345;width:100%}
+#prt .ps{max-width:780px;margin:0 auto;padding:18px;font-size:18px;line-height:1.5}
+#prt[data-mode=q] .pas,#prt[data-mode=a] .pqs{display:none}
+#prt h1{font-size:24px;margin:0 0 6px;color:#000}
+#prt .pm{margin:10px 0;font-size:17px}#prt .pt{font-size:14px;margin-bottom:12px;color:#222}
+#prt .pq{display:flex;gap:10px;margin:0 0 6px;padding:8px 0;border-bottom:1px dotted #888;break-inside:avoid;page-break-inside:avoid}
+#prt .pn{font-weight:800;min-width:28px;font-size:19px}
+#prt .pb{flex:1}#prt .q{font-size:18px;color:#000}
+#prt .po{display:flex;flex-wrap:wrap;gap:4px 22px;margin-top:6px}
+#prt .pl{display:flex;align-items:center;gap:8px;margin-top:8px}
+#prt .ln{display:inline-block;width:150px;border-bottom:1.5px solid #000;height:22px}#prt .ln.sh{width:60px}
+#prt .bx{display:inline-block;width:46px;height:22px;padding:0;border:1.5px solid #000;margin:2px 0}
+#prt .fr i{background:#000}
+#prt .pw{height:46px}
+#prt .pa1{font-size:19px}#prt .pe{font-size:14px;color:#222;margin-top:4px}
+#prt .pe .fr,#prt .pa1 .fr{font-size:.95em}
+@media print{
+ @page{size:A4;margin:14mm}
+ html,body{background:#fff!important}
+ body>*:not(#prt){display:none!important}
+ #prt{position:static;overflow:visible;display:block!important}
+ #prt .pbar,#prt .pbar *{display:none!important}
+ #prt,#prt *{background-color:transparent!important}
+ #prt .ps{max-width:none;padding:0;font-size:15px}
+ #prt h1{font-size:20px}
+ #prt .pw{height:40px}
+}
 </style></head><body><div class="wrap" id="app"></div>
 <script>
 // ---------- question generators (shared by app and answer-key export) ----------
@@ -320,7 +350,7 @@ zSet('Z5','חלק מכמות, חוגים, מלבן ומשולש','<p>חלק מכ
 const ORDER=['Z1','Z2','Z3','Z4','Z5','H1','H2','H3','H4','H5','H6','H9','H7','H8','D1','D2','D3','D4','D5','D6','D7','S1','S2','S3','S4','S5','S6','S7','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
 function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
 if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
-const VERSION='2026-10-13-b';
+const VERSION='2026-10-13-c';
 const KEY='giladica-v1';
 const DEF={done:{},runs:{},fish:0,log:[],q:{first:{},attempts:{},hints:{},text:{}},exams:[],daily:{streak:0,last:null,done:{}},theme:'light',asg:[],asgRes:[]};
 let S;try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
@@ -457,17 +487,32 @@ function parent_(){const rows=S.log.slice(-15).reverse().map(l=>'<div>'+l.d.repl
  $.innerHTML='<div class="top"><button class="lnk" onclick="home()">חזרה</button></div><h2>להורה</h2>'
  +'<div class="card">הנתונים נשמרים בטלפון הזה. אם מעקב הופעל במכשיר, סיכום התקדמות נשלח גם לגיליון הפרטי של מיקי ולמצב המורה המשותף. גלעד לא רואה כאן ציונים.<br><b>סטים שהושלמו: '+Object.keys(S.done).length+' מתוך '+SETS.length+'. הצלחה בניסיון ראשון: '+tot+'%.</b></div>'
  +'<div class="card" id="lsbox"><b>טוען נתוני מורה…</b></div>'
- +'<div class="card"><h3 style="margin-top:0">יצירת משימה</h3><label style="display:block;font-size:15px">שם המשימה<input class="in" id="asgTitle" style="font-size:16px;text-align:right;direction:rtl" value="תרגול גלעדיקה"></label><label style="display:block;font-size:15px;margin-top:8px">מספר שאלות <input class="sm" id="asgCount" type="number" min="4" max="24" value="8"></label><div style="margin:8px 0"><b>תחומים</b></div>'+TRACKS.map(([tr,name])=>'<label style="display:block;font-size:16px"><input class="asgTr" type="checkbox" value="'+tr+'" checked> '+name+'</label>').join('')+'<button class="btn sec" onclick="exportAsg()">ייצוא קובץ משימה</button><button class="btn sec" onclick="document.getElementById(\'asgFile\').click()">ייבוא משימה</button><input type="file" id="asgFile" accept="application/json" style="display:none" onchange="importAsg(event)"></div>'
+ +'<div class="card"><h3 style="margin-top:0">יצירת משימה</h3><label style="display:block;font-size:15px">שם המשימה<input class="in" id="asgTitle" style="font-size:16px;text-align:right;direction:rtl" value="תרגול גלעדיקה"></label><label style="display:block;font-size:15px;margin-top:8px">מספר שאלות <input class="sm" id="asgCount" type="number" min="4" max="24" value="8"></label><div style="margin:8px 0"><b>תחומים</b></div>'+TRACKS.map(([tr,name])=>'<label style="display:block;font-size:16px"><input class="asgTr" type="checkbox" value="'+tr+'" checked> '+name+'</label>').join('')+'<button class="btn" onclick="printAsg()">הכנה להדפסה (שאלות ודף תשובות)</button><button class="btn sec" onclick="exportAsg()">ייצוא קובץ משימה</button><button class="btn sec" onclick="document.getElementById(\'asgFile\').click()">ייבוא משימה</button><input type="file" id="asgFile" accept="application/json" style="display:none" onchange="importAsg(event)"></div>'
  +'<div class="card" style="font-size:15px">'+rows+exRows+asgRows+'</div>'
  +'<button class="btn sec" onclick="copySum()">העתק סיכום לוואטסאפ</button><button class="btn sec" onclick="exportReport()">ייצוא דוח מלא</button><button class="btn sec" onclick="exportProgress()">הורדת קובץ גיבוי</button><button class="btn sec" onclick="document.getElementById(\'impFile\').click()">שחזור מקובץ</button><input type="file" id="impFile" accept="application/json" style="display:none" onchange="importProgress(event)"><button class="btn sec" onclick="bk()">גיבוי ושחזור בטקסט</button><div id="bk"></div><button class="lnk" onclick="if(confirm(\'למחוק את כל ההתקדמות?\')&&confirm(\'בטוח? כל הסטים, הדגים והנקודות יימחקו.\')){localStorage.removeItem(KEY);S=JSON.parse(JSON.stringify(DEF));save();home()}">איפוס</button>';
  window._txt=txt;
  try{window.liveStats&&liveStats.render(document.getElementById('lsbox'))}catch(e){document.getElementById('lsbox').innerHTML='<b>מצב מורה חי לא זמין.</b>'}}
 function copySum(){const t='גלעדיקה: '+Object.keys(S.done).length+'/'+SETS.length+' סטים. אחרונים בניסיון ראשון: '+window._txt;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('הועתק'),()=>prompt('העתק:',t))}
-function exportAsg(){const trs=[...document.querySelectorAll('.asgTr')].filter(x=>x.checked).map(x=>x.value);if(!trs.length)return alert('בחר לפחות תחום אחד');
+function makeJobs(){const trs=[...document.querySelectorAll('.asgTr')].filter(x=>x.checked).map(x=>x.value);if(!trs.length){alert('בחר לפחות תחום אחד');return null}
  const count=Math.max(4,Math.min(24,+document.getElementById('asgCount').value||8));
  const pool=ORDER.filter(id=>trs.includes(setOf(id).tr)).sort(()=>Math.random()-.5);
  const jobs=[];for(let k=0;k<count;k++){const id=pool[k%pool.length];jobs.push({set:id,v:500+Math.floor(Math.random()*400),i:Math.floor(Math.random()*8)})}
- downloadJSON('giladica-assignment.json',{kind:'giladica-assignment',version:1,title:document.getElementById('asgTitle').value.trim()||'משימת גלעדיקה',createdAt:new Date().toISOString(),jobs})}
+ return{title:document.getElementById('asgTitle').value.trim()||'משימת גלעדיקה',jobs}}
+function exportAsg(){const a=makeJobs();if(!a)return;
+ downloadJSON('giladica-assignment.json',{kind:'giladica-assignment',version:1,title:a.title,createdAt:new Date().toISOString(),jobs:a.jobs})}
+function printAsg(){const a=makeJobs();if(!a)return;showPrint(a.title,a.jobs,'q')}
+function showPrint(title,jobs,mode){document.getElementById('prt')?.remove();
+ const qs=jobs.map(j=>build(j.set,j.v)[j.i]),L='אבגדהו';
+ const blank=q=>{if(q.k==='ch')return '<div class="po">'+q.opts.map((o,i)=>'<div>'+L[i]+'. '+o+'</div>').join('')+'</div>';
+  if(q.k==='num')return '<div class="pl"><span>תשובה:</span><span class="ln"></span></div>';
+  if(q.k==='frac')return '<div class="pl"><span>תשובה:</span><span class="fr"><b class="bx"></b><i></i><b class="bx"></b></span></div>';
+  return '<div class="pl"><span>תשובה:</span><span class="ln sh"></span><span>שלמים ו-</span><span class="fr"><b class="bx"></b><i></i><b class="bx"></b></span></div>'};
+ const head=(t)=>'<h1>'+esc(t)+'</h1>';
+ const qh=head(title)+'<div class="pm">שם: ____________________ &nbsp;&nbsp; תאריך: ____________</div><div class="pt">פותרים בעיפרון. מותר לכתוב תרגיל בצד. אם לא יודעים, מנסים ואז ממשיכים.</div>'+qs.map((q,i)=>'<div class="pq"><div class="pn">'+(i+1)+'.</div><div class="pb"><div class="q">'+q.t+'</div>'+blank(q)+'<div class="pw"></div></div></div>').join('');
+ const ah=head('דף תשובות: '+title)+'<div class="pt">למיקי. מפתח התשובות והפתרון צעד-צעד.</div>'+qs.map((q,i)=>'<div class="pq"><div class="pn">'+(i+1)+'.</div><div class="pb"><div class="pa1"><b>תשובה: </b>'+(q.k==='ch'?L[q.a]+'. ':'')+answerHtml(q)+'</div><div class="pe">'+q.e+'</div></div></div>').join('');
+ const d=document.createElement('div');d.id='prt';d.dataset.mode=mode;
+ d.innerHTML='<div class="pbar"><button class="btn" onclick="window.print()">הדפסה</button><button class="btn sec" onclick="document.getElementById(\'prt\').dataset.mode=\'q\'">תצוגת שאלות</button><button class="btn sec" onclick="document.getElementById(\'prt\').dataset.mode=\'a\'">תצוגת דף תשובות</button><button class="btn sec" onclick="document.getElementById(\'prt\').remove()">סגירה</button><div class="pn2">בוחרים תצוגה, ואז לוחצים הדפסה. אפשר להדפיס את דף התשובות בנפרד.</div></div><div class="ps pqs">'+qh+'</div><div class="ps pas">'+ah+'</div>';
+ document.body.appendChild(d);window.scrollTo(0,0)}
 async function importAsg(e){try{const a=JSON.parse(await e.target.files[0].text());if(a.kind!=='giladica-assignment'||!Array.isArray(a.jobs))throw 0;
  S.asg.unshift({title:a.title||'משימה',importedAt:new Date().toISOString(),count:a.jobs.length});save();startRefs(a.title||'משימה',a.jobs,'plan')}catch(_){alert('זה אינו קובץ משימה תקין של גלעדיקה')}finally{e.target.value=''}}
 function exportReport(){const s=giladSnap();downloadJSON('giladica-report.json',{kind:'giladica-student-report',version:1,createdAt:new Date().toISOString(),summary:{...s.summary,setsDone:Object.keys(S.done).length,setsTotal:SETS.length},topics:s.topics,sets:s.sets,weak:s.weak,exams:S.exams.slice(0,10),assignments:S.asgRes.slice(0,10),recent:S.log.slice(-15)})}
