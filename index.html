@@ -305,10 +305,19 @@ const NS=[
 ];
 SETS.push(...NS);
 
-const ORDER=['H1','H2','H3','H4','H5','H6','H9','H7','H8','D1','D2','D3','D4','D5','D6','D7','S1','S2','S3','S4','S5','S6','S7','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
+const zPick=(R,id)=>{const q=SETS.find(x=>x.id===id).g(R);return q[R.ri(0,q.length-1)]};
+const zSet=(id,n,i,ids)=>({id,tr:'Z',n,i,g:R=>{const used=new Set(),out=[];for(const x of ids){let q,k=0;do{q=zPick(R,x);k++}while(used.has(q.t)&&k<30);used.add(q.t);out.push(q)}return out}});
+SETS.push(
+zSet('Z1','מבדק מסכם: כל התחומים','<p>שאלה אחת מכל נושא: שבר כמנת חילוק, מספר מעורב, עשרוני ושבר, חיבור וכפל שברים, חלק מכמות ושטח. ככה מתרגלים הכול ביחד, כמו במבחן. יש רמזים אם מסתבכים, ואין ציון.</p>',['B5','B8','T2','S5','T5','D5','H3','H6']),
+zSet('Z2','שבר כמנת חילוק','<p>שבר הוא חילוק: '+F(3,4)+' זה '+M('3 ÷ 4')+'. כשהמונה גדול מהמכנה יוצא מספר מעורב, וכששארית נשארת היא הופכת לשבר.</p>',['B3','B4','B5','B6','B7','B8','B9','B10']),
+zSet('Z3','שברים: חיבור, חיסור וכפל','<p>חיבור וחיסור: מכנה משותף. כפל: מונה כפול מונה, מכנה כפול מכנה. אחרי כל תרגיל מצמצמים.</p>',['T1','T2','T3','S3','S4','S5','S6','T4']),
+zSet('Z4','עשרוניים ושברים: המרות וחיבור','<p>עשרוני ושבר הם אותו מספר בשתי צורות. עשיריות מעל 10, מאיות מעל 100. בחיבור וחיסור בטור הנקודה יושבת מתחת לנקודה.</p>',['T5','T6','T7','D4','D5','D6','A3','D7']),
+zSet('Z5','חלק מכמות, חוגים, מלבן ומשולש','<p>חלק מכמות: מחלקים במכנה ומכפילים במונה. מלבן: היקף הוא סכום הצלעות, שטח הוא אורך כפול רוחב. משולש ישר זווית הוא חצי מלבן.</p>',['H1','H2','H3','H4','H5','H6','H9','H8'])
+);
+const ORDER=['Z1','Z2','Z3','Z4','Z5','H1','H2','H3','H4','H5','H6','H9','H7','H8','D1','D2','D3','D4','D5','D6','D7','S1','S2','S3','S4','S5','S6','S7','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14'];
 function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
 if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
-const VERSION='2026-10-12-b';
+const VERSION='2026-10-13-a';
 const KEY='giladica-v1';
 let S={done:{},runs:{},fish:0,log:[]};
 try{const x=JSON.parse(localStorage.getItem(KEY));if(x)S=Object.assign(S,x)}catch(e){}
@@ -322,7 +331,7 @@ function home(){cur=null;const nx=nextId();const nd=Object.keys(S.done).length;
  let h='<div class="top"><h1>גלעדיקה 🎣</h1></div><div class="card"><b>'+nd+' מתוך '+SETS.length+' סטים הושלמו</b><div class="prog"><i style="width:'+(nd/SETS.length*100)+'%"></i></div>'+
  (nx?'<button class="btn big" onclick="openSet(\''+nx+'\')">הסט של היום: '+setOf(nx).n+'</button><div style="color:#5d7a85;font-size:15px">כל סט לוקח בערך 10 דקות. אפשר לעצור באמצע ולחזור.</div>':'<div class="fish">🏆</div><b>סיימת את כל הסטים! אפשר לחזור לכל סט ולנסות שוב.</b>')+'</div>';
  h+='<div class="card"><b>האוסף שלי</b><div class="grid">'+(S.fish?Array.from({length:S.fish},(_,i)=>FISH[i%FISH.length]).join(''):'<span style="font-size:16px;color:#5d7a85">כל סט שמסיימים מוסיף דג חדש.</span>')+'</div></div>';
- for(const tr of ['H','D','S','T','B','A']){h+='<div class="sec-h">'+(tr==='H'?'חזרה למבדק של יום שלישי 📋':tr==='D'?'שברים עשרוניים: עוד תרגול 🔢':tr==='S'?'חיבור וכפל שברים ➕✖️':tr==='T'?'הכנה למבחן 🎯':tr==='B'?'שבר כמנת חילוק (החומר מהכיתה)':'מחזקים את הבסיס')+'</div>';
+ for(const tr of ['Z','H','D','S','T','B','A']){h+='<div class="sec-h">'+(tr==='Z'?'חזרה אחרונה לפני המבחן 🏁':tr==='H'?'חזרה למבדק של יום שלישי 📋':tr==='D'?'שברים עשרוניים: עוד תרגול 🔢':tr==='S'?'חיבור וכפל שברים ➕✖️':tr==='T'?'הכנה למבחן 🎯':tr==='B'?'שבר כמנת חילוק (החומר מהכיתה)':'מחזקים את הבסיס')+'</div>';
   for(const id of ORDER.filter(i=>setOf(i).tr===tr)){const s=setOf(id),d=S.done[id];h+='<button class="set'+(d?' done':'')+(id===nx?' next':'')+'" onclick="openSet(\''+id+'\')"><span class="no">'+(d?'✓':id)+'</span><span>'+s.n+(d?'<small>עשית '+(S.runs[id]||1)+' פעמים</small>':'')+'</span>'+(id===nx?'<span class="tag">הבא</span>':'')+'</button>'}}
  h+='<p style="text-align:center"><button class="lnk" onclick="parent_()">להורה</button></p>';$.innerHTML=h;window.scrollTo(0,0)}
 function openSet(id){const s=setOf(id);const v=S.runs[id]||0;
