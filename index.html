@@ -584,7 +584,7 @@ const NEWIDS3=NEWSETS3.map(s=>s.id);
 const ORDER=['Z1','Z2','Z3','Z4','Z5','H1','H2','H3','H4','H5','H6','H9','H7','H8','D1','D2','D3','D4','D5','D6','D7','S1','S2','S3','S4','S5','S6','S7','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14',...NEWIDS,...NEWIDS2,...NEWIDS3];
 function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
 if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
-const VERSION='2026-10-14-a';
+const VERSION='2026-10-14-b';
 const KEY='giladica-v1';
 const DEF={done:{},runs:{},fish:0,log:[],q:{first:{},attempts:{},hints:{},text:{}},exams:[],daily:{streak:0,last:null,done:{}},theme:'light',asg:[],asgRes:[]};
 let S;try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
@@ -746,7 +746,7 @@ function simTick(){if(!cur||cur.kind!=='sim'){clearInterval(window._simT);return
  if(el){el.textContent='⏱ '+m+':'+String(sec%60).padStart(2,'0');if(ms<60000)el.style.color='#d1495b'}
  if(ms<=0){clearInterval(window._simT);doneSim(true)}}
 function simShow(){const q=cur.qs[cur.i],n=cur.qs.length;cur.sel=null;
- $.innerHTML='<div class="top"><button class="lnk" onclick="if(confirm(\'לסיים את המבחן עכשיו? השאלות שענית עליהן ייספרו.\'))doneSim(false)">סיום מוקדם</button><span>'+(cur.i+1)+' מתוך '+n+'</span><span id="simClk" style="font-weight:800;font-size:18px"></span></div><div class="prog"><i style="width:'+(cur.i/n*100)+'%"></i></div><div class="card"><div class="q">'+q.t+'</div>'+inputs(q)+'<div id="fb"></div><div style="display:flex;gap:8px"><button class="btn" style="flex:1" onclick="simNext(false)">שליחה ולשאלה הבאה</button><button class="btn sec" onclick="simNext(true)">דילוג</button></div></div><div style="color:var(--mut);font-size:14px;text-align:center;margin-top:6px">בלי רמזים ובלי חזרה אחורה - כמו במבחן.</div>';
+ $.innerHTML='<div class="top"><button class="lnk" onclick="if(confirm(\'לסיים את המבחן עכשיו? השאלות שענית עליהן ייספרו.\'))doneSim(false)">סיום מוקדם</button><span>'+(cur.i+1)+' מתוך '+n+'</span><span id="simClk" style="font-weight:800;font-size:18px"></span></div><div class="prog"><i style="width:'+(cur.i/n*100)+'%"></i></div><div class="card"><div class="q">'+q.t+'</div>'+inputs(q)+'<div id="fb"></div><div style="display:flex;gap:8px"><button class="btn" style="flex:2;width:auto" onclick="simNext(false)">שליחה ולשאלה הבאה</button><button class="btn sec" style="flex:1;width:auto" onclick="simNext(true)">דילוג</button></div></div><div style="color:var(--mut);font-size:14px;text-align:center;margin-top:6px">בלי רמזים ובלי חזרה אחורה - כמו במבחן.</div>';
  const a=document.getElementById('a0');if(a&&q.k!=='ch')a.focus();
  $.querySelectorAll('input').forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')simNext(false)}));
  clearInterval(window._simT);window._simT=setInterval(simTick,500);simTick();
@@ -775,7 +775,7 @@ function doneSim(timeUp){if(!cur||cur.kind!=='sim')return;clearInterval(window._
   return '<div style="border-top:1px solid var(--line,#e5e5e5);padding:10px 0"><b>שאלה '+(k+1)+'</b> · '+st+'<div class="q" style="margin:6px 0">'+d.q.t+'</div>'+(d.ok?'':'<div><b>התשובה הנכונה: </b>'+answerHtml(d.q)+'</div><div style="color:var(--mut);margin-top:4px">'+d.q.e+'</div>')+'</div>'}).join('');
  const msg=first===n?'מושלם - הכול נכון תחת שעון רץ. זה הביטחון שמגיע איתך למבחן האמיתי.':(first>=Math.ceil(n*0.7)?'כל הכבוד - רוב התשובות נכונות. עכשיו רואים בדיוק מה עוד לחזק לפני המבחן.':'זה רק אימון, וכל טעות כאן היא מתנה: עכשיו יודעים בדיוק מה לתרגל. למטה מחכה כל שאלה עם פתרון מלא.');
  $.innerHTML='<div class="top"><button class="lnk" onclick="home()">למסך הראשי</button></div><h2>סוף המבחן ⏱</h2>'
- +'<div class="card" style="text-align:center"><div style="font-size:44px;font-weight:800">'+first+' / '+n+'</div><p>'+(timeUp?'הזמן נגמר. ':'')+'המבחן לקח '+usedMin+' דקות.'+(unanswered?' לא הספקת להגיע ל-'+unanswered+(unanswered>1?' שאלות':' שאלה')+'. בפעם הבאה כדאי לדלג מהר יותר על שאלה שתוקעת.':'')+'</p><p>'+msg+'</p><button class="btn" onclick="openSim()">עוד אימון</button> <button class="btn sec" onclick="home()">למסך הראשי</button></div>'
+ +'<div class="card" style="text-align:center"><div style="font-size:40px;font-weight:800">'+first+' מתוך '+n+'</div><p>'+(timeUp?'הזמן נגמר. ':'')+'המבחן לקח '+(usedMin===1?'דקה אחת':usedMin+' דקות')+'.'+(unanswered?' לא הספקת להגיע ל-'+unanswered+(unanswered>1?' שאלות':' שאלה')+'. בפעם הבאה כדאי לדלג מהר יותר על שאלה שתוקעת.':'')+'</p><p>'+msg+'</p><button class="btn" onclick="openSim()">עוד אימון</button> <button class="btn sec" onclick="home()">למסך הראשי</button></div>'
  +(rows?'<h3 style="margin:14px 4px 6px">מעבר על השאלות והפתרונות</h3><div class="card">'+rows+'</div>':'');
  cur=null}
 /* ---- parent / teacher screen ---- */
