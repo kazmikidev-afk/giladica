@@ -644,10 +644,14 @@ function giladPlan(s,max=12){
 }
 let cur=null;
 function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=S.theme;save();home()}
+function testMode(){if(!S.testDate)return null;const days=Math.ceil((new Date(S.testDate+'T09:00:00')-Date.now())/864e5);return days>=0&&days<=6?{date:S.testDate,days}:null}
+function saveTestDate(){const v=document.getElementById('testDateIn').value;S.testDate=v||null;save();parent_()}
+function clearTestDate(){S.testDate=null;save();parent_()}
 function home(filter=''){cur=null;const nx=nextId();const nd=Object.keys(S.done).length;
  let h='<div class="top"><h1>גלעדיקה 🎣</h1><button class="lnk" onclick="toggleTheme()" title="מצב כהה">'+(S.theme==='dark'?'☀️':'🌙')+'</button></div><div class="card"><b>'+nd+' מתוך '+SETS.length+' סטים הושלמו</b><div class="prog"><i style="width:'+(nd/SETS.length*100)+'%"></i></div>'+
  (nx?'<button class="btn big" onclick="openSet(\''+nx+'\')">הסט של היום: '+setOf(nx).n+'</button><div style="color:var(--mut);font-size:15px">כל סט לוקח בערך 10 דקות. אפשר לעצור באמצע ולחזור.</div>':'<div class="fish">🏆</div><b>סיימת את כל הסטים! אפשר לחזור לכל סט ולנסות שוב.</b>')+'</div>';
  h+='<div class="toolrow"><button class="tbtn" onclick="openDaily()">★ אתגר יומי</button><button class="tbtn" onclick="openExam()">📝 מבחן תרגול</button><button class="tbtn" onclick="openSim()">⏱ מבחן עם שעון</button><button class="tbtn" onclick="liveStats.openWeak(true)">💪 דף תרגול אישי</button></div>';
+ const tm=testMode();if(tm)h+='<div class="card" style="border:2px solid #d1495b"><b>🎯 מבחן בעוד '+(tm.days===0?'היום!':tm.days===1?'יום אחד':tm.days+' ימים')+'</b> ('+tm.date.split('-').reverse().join('.')+'). האתגר היומי במצב חזרה לקראת המבחן, ומומלץ כל יום גם מבחן עם שעון. <button class="btn" onclick="openSim()">⏱ מבחן עם שעון</button></div>';
  h+='<div class="card"><b>האוסף שלי</b><div class="grid">'+(S.fish?Array.from({length:S.fish},(_,i)=>FISH[i%FISH.length]).join(''):'<span style="font-size:16px;color:var(--mut)">כל סט שמסיימים מוסיף דג חדש.</span>')+'</div></div>';
  h+='<input class="in" style="font-size:17px;text-align:right;direction:rtl" placeholder="חיפוש סט…" oninput="home(this.value)" value="'+esc(filter)+'">';
  for(const [tr,name] of TRACKS){const ids=ORDER.filter(i=>setOf(i).tr===tr&&(!filter||setOf(i).n.includes(filter)));if(!ids.length)continue;
@@ -724,7 +728,7 @@ function dailyRefs(){
   while(oldPick.length<6)oldPick.push(pool[Math.floor(r()*pool.length)]);
  }
  const newIds=ORDER.filter(id=>setOf(id).nw&&!S.done[id]).slice(0,2);
- let newPick=newIds.length?[newIds[0],newIds[0],newIds[1]||newIds[0],newIds[1]||newIds[0]]:take(pool.slice(),4);
+ let newPick=(!testMode()&&newIds.length)?[newIds[0],newIds[0],newIds[1]||newIds[0],newIds[1]||newIds[0]]:take(pool.slice(),4);
  const v=dHash(k)%900;
  const win=Math.min(3,Math.floor((S.daily.streak||0)/3)),lo=1+win,hi=4+win;
  const all=[...oldPick.map(id=>({set:id,v,nw:0})),...newPick.map((id,j)=>({set:id,v:(v+j)%900,nw:1}))];
@@ -819,6 +823,7 @@ function parent_(){const rows=S.log.slice(-15).reverse().map(l=>'<div>'+l.d.repl
  const asgRows=S.asgRes.slice(0,5).map(e=>'<div>'+e.date.slice(0,10)+' | '+esc(e.title)+' | '+e.score+'/'+e.total+'</div>').join('');
  $.innerHTML='<div class="top"><button class="lnk" onclick="home()">חזרה</button></div><h2>להורה</h2>'
  +'<div class="card">הנתונים נשמרים בטלפון הזה. אם מעקב הופעל במכשיר, סיכום התקדמות נשלח גם לגיליון הפרטי של מיקי ולמצב המורה המשותף. גלעד לא רואה כאן ציונים.<br><b>סטים שהושלמו: '+Object.keys(S.done).length+' מתוך '+SETS.length+'. הצלחה בניסיון ראשון: '+tot+'%.</b></div>'
+ +'<div class="card"><h3 style="margin-top:0">תאריך מבחן</h3><label style="font-size:15px">מתי המבחן הבא? <input class="in" type="date" id="testDateIn" value="'+(S.testDate||'')+'"></label> <button class="btn sec" onclick="saveTestDate()">שמירה</button> <button class="lnk" onclick="clearTestDate()">ביטול</button><div style="font-size:14px;color:var(--mut);margin-top:6px">בשישה הימים שלפני המבחן האתגר היומי עובר למצב חזרה ומופיעה בעמוד הבית תזכורת למבחן עם שעון.</div></div>'
  +'<div class="card" id="lsbox"><b>טוען נתוני מורה…</b></div>'
  +'<div class="card"><h3 style="margin-top:0">יצירת משימה</h3><label style="display:block;font-size:15px">שם המשימה<input class="in" id="asgTitle" style="font-size:16px;text-align:right;direction:rtl" value="תרגול גלעדיקה"></label><label style="display:block;font-size:15px;margin-top:8px">מספר שאלות <input class="sm" id="asgCount" type="number" min="4" max="24" value="8"></label><div style="margin:8px 0"><b>תחומים</b></div>'+TRACKS.map(([tr,name])=>'<label style="display:block;font-size:16px"><input class="asgTr" type="checkbox" value="'+tr+'" checked> '+name+'</label>').join('')+'<button class="btn" onclick="printAsg()">הכנה להדפסה (שאלות ודף תשובות)</button><button class="btn sec" onclick="exportAsg()">ייצוא קובץ משימה</button><button class="btn sec" onclick="document.getElementById(\'asgFile\').click()">ייבוא משימה</button><input type="file" id="asgFile" accept="application/json" style="display:none" onchange="importAsg(event)"></div>'
  +'<div class="card" style="font-size:15px">'+rows+exRows+asgRows+'</div>'
