@@ -634,7 +634,7 @@ function giladSnap(){
   .map(qid=>({id:qid,set:qid.split(':')[0],topic:setOf(qid.split(':')[0]).n,text:S.q.text[qid]||'',wrong:S.q.first[qid]===false?1:0,tries:S.q.attempts[qid]||0,hints:S.q.hints[qid]||0}));
  return{summary:{answered:f.length,correct,accuracy:f.length?Math.round(correct/f.length*100):0,hints:Object.values(S.q.hints).reduce((a,b)=>a+b,0)},
   topics,sets,seen:Object.keys(S.q.first),weak,
-  exams:S.exams.slice(0,5).map(e=>({date:e.date,pct:e.total?Math.round(e.score/e.total*100):0})),streak:S.daily.streak||0};
+  exams:S.exams.slice(0,5).map(e=>({date:e.date,pct:e.total?Math.round(e.score/e.total*100):0,...(e.kind?{kind:e.kind}:{}),...(e.mins?{mins:e.mins}:{})})),streak:S.daily.streak||0};
 }
 /* ---- personal plan: weak sets weighted, exact wrong questions first, then fresh ---- */
 function giladPlan(s,max=12){
