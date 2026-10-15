@@ -154,7 +154,7 @@ const rd=(n,d)=>{const g=gcd(Math.abs(n),d)||1;return[n/g,d/g]};
 const tri=(n,d)=>{[n,d]=rd(n,d);const w=Math.floor(n/d),r=n-w*d;return[w,r,r?d:1]};
 const opd=(w,n,d)=>n===0?String(w):w?MX(w,n,d):F(n,d);
 const lcm=(a,b)=>a*b/gcd(a,b);
-const mixq=(t,n,d,h,e,red)=>{const a=tri(n,d);const q=mix(t,a[0],a[1],a[2],h,e);q.red=true;return q};
+const mixq=(t,n,d,h,e,red)=>{const a=tri(n,d);const q=mix(t,a[0],a[1],a[2],h,e);if(red)q.red=true;return q};
 const ansTxt=(n,d)=>{const a=tri(n,d);return opd(a[0],a[1],a[2])};
 const NOTE='<br><small>אם יוצא קטן מ-1, השאר את תיבת השלמים ריקה.</small>';
 const rimp=(w,n,d)=>w*d+n;
@@ -485,13 +485,18 @@ sUp(R,lv){const s=lv===0?R.pick([100,200,500]):R.pick([1000,10000,100000]);const
 sDown(R,lv){const s=lv===0?R.pick([50,100]):R.pick([200,500]);const L=R.ri(2,15);const m=L*s/100;
  return num('חדר באורך '+M(dd(m))+' מטר מצויר בתשריט בקנה מידה '+RT(1,s)+'. כמה ס"מ אורך החדר בתשריט?',L,'מעבירים את האורך האמיתי לס"מ (מטר הוא 100 ס"מ) ואז מחלקים ב-'+s+'.',M(dd(m)+' מטר = '+Math.round(m*100)+' ס"מ')+'. '+M(Math.round(m*100)+' ÷ '+s+' = '+L)+' ס"מ.')}
 };
+// challenge rule (Miki): fraction answers in challenge sets must say so and accept only reduced form
+const chal=g=>R=>g(R).map(q=>{
+ if(q.k==='frac'){const z=gcd(q.a[0],q.a[1]);q.a=[q.a[0]/z,q.a[1]/z];q.red=true;q.t+='<br><b>כתוב שבר מצומצם.</b>'}
+ else if(q.k==='mix'&&q.a[1]>0){q.red=true;q.t+='<br><b>כתוב שבר מצומצם.</b>'}
+ return q});
 // ---------- challenge capstones: grade-6 ceiling (daily-rotation eligible) ----------
 SETS.push(
-{id:'T12',tr:'T',n:'אתגר: שברים ברמת המבחן 💪',i:'<p>סט אתגר: שאלות ברמה של סוף כיתה ו׳ - מספרים מעורבים, שבר כפול שבר וגם חילוק שברים. אם נתקעת, יש רמזים, וכל טעות רק מחזקת.</p>',g:R=>[B.addSame(R,2),B.unlike(R,2),B.mixSub(R,1),B.mixTimes(R,1),B.fracFrac(R,2),B.twoPart(R,1),B.whatFrac(R,1),P1.fByW(R,1)]},
-{id:'D10',tr:'D',n:'אתגר: עשרוניים ברמת המבחן 💪',i:'<p>כפל וחילוק עשרוניים ברמה מלאה: עשרוני כפול עשרוני, חילוק בעשרוני ושאלות מילוליות. בדיוק הרמה של סוף היחידה.</p>',g:R=>[B.tenp(R,1),B.vdec(R,2),P1.estMul(R,1),P1.bigSmall(R,1),P1.dmw(R,2),P1.dmd(R,2),P1.ddd(R,2),P1.dStory(R,2)]},
-{id:'H11',tr:'H',n:'אתגר: חלק מכמות, היקף ושטח 💪',i:'<p>למצוא את הכמות כולה מתוך חלק - גם כשכתוב "נשארו" - ועוד היקף ושטח. הכי קרוב לשאלות המילוליות של המבחן.</p>',g:R=>[BH.gumPart(R,1),BH.gumRest(R,1),B.partWord(R,1),BH.rectPer(R,1),BH.rectArea(R,1),BH.triArea(R,1),P1.wfp(R,2),P1.wfpLeft(R,2)]},
-{id:'B16',tr:'B',n:'אתגר: שבר כמנת חילוק 💪',i:'<p>חילוק עם שארית שהופכת לשבר, מספרים מעורבים ושברים גדולים מ־1, וכמה פעמים חלק נכנס בשלם.</p>',g:R=>[B.quot(R,1),B.share(R,1),B.big(R,1),B.toMix(R,1),B.toImp(R,1),B.rem(R,1),B.pizza1(R,2),P1.inWhole(R,1)]},
-{id:'S9',tr:'S',n:'אתגר: מספרים מעורבים ושברים 💪',i:'<p>חיבור, חיסור, כפל וחילוק עם מספרים מעורבים ושברים - הרמה של סוף היחידה.</p>',g:R=>[B.addSame(R,2),B.mixAdd(R,1),B.mixSub(R,1),B.fracTimes(R,1),B.mixTimes(R,1),B.fracFrac(R,1),P1.wByF(R,1),P1.fByF(R,1)]},
+{id:'T12',tr:'T',n:'אתגר: שברים ברמת המבחן 💪',i:'<p>סט אתגר: שאלות ברמה של סוף כיתה ו׳ - מספרים מעורבים, שבר כפול שבר וגם חילוק שברים. אם נתקעת, יש רמזים, וכל טעות רק מחזקת.</p>',g:chal(R=>[B.addSame(R,2),B.unlike(R,2),B.mixSub(R,1),B.mixTimes(R,1),B.fracFrac(R,2),B.twoPart(R,1),B.whatFrac(R,1),P1.fByW(R,1)])},
+{id:'D10',tr:'D',n:'אתגר: עשרוניים ברמת המבחן 💪',i:'<p>כפל וחילוק עשרוניים ברמה מלאה: עשרוני כפול עשרוני, חילוק בעשרוני ושאלות מילוליות. בדיוק הרמה של סוף היחידה.</p>',g:chal(R=>[B.tenp(R,1),B.vdec(R,2),P1.estMul(R,1),P1.bigSmall(R,1),P1.dmw(R,2),P1.dmd(R,2),P1.ddd(R,2),P1.dStory(R,2)])},
+{id:'H11',tr:'H',n:'אתגר: חלק מכמות, היקף ושטח 💪',i:'<p>למצוא את הכמות כולה מתוך חלק - גם כשכתוב "נשארו" - ועוד היקף ושטח. הכי קרוב לשאלות המילוליות של המבחן.</p>',g:chal(R=>[BH.gumPart(R,1),BH.gumRest(R,1),B.partWord(R,1),BH.rectPer(R,1),BH.rectArea(R,1),BH.triArea(R,1),P1.wfp(R,2),P1.wfpLeft(R,2)])},
+{id:'B16',tr:'B',n:'אתגר: שבר כמנת חילוק 💪',i:'<p>חילוק עם שארית שהופכת לשבר, מספרים מעורבים ושברים גדולים מ־1, וכמה פעמים חלק נכנס בשלם.</p>',g:chal(R=>[B.quot(R,1),B.share(R,1),B.big(R,1),B.toMix(R,1),B.toImp(R,1),B.rem(R,1),B.pizza1(R,2),P1.inWhole(R,1)])},
+{id:'S9',tr:'S',n:'אתגר: מספרים מעורבים ושברים 💪',i:'<p>חיבור, חיסור, כפל וחילוק עם מספרים מעורבים ושברים - הרמה של סוף היחידה.</p>',g:chal(R=>[B.addSame(R,2),B.mixAdd(R,1),B.mixSub(R,1),B.fracTimes(R,1),B.mixTimes(R,1),B.fracFrac(R,1),P1.wByF(R,1),P1.fByF(R,1)])},
 zSet('Z6','אתגר מסכם: ברמת המבחן 🏁','<p>שאלת אתגר מכל נושא, ברמה של המבחן האמיתי. מומלץ אחרי שמסיימים את סטי האתגר של כל נושא.</p>',['T12','D10','H11','B16','S9','A9','T12','S9'])
 );
 
