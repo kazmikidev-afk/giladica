@@ -587,7 +587,7 @@ const NEWIDS3=NEWSETS3.map(s=>s.id);
 const ORDER=['Z1','Z2','Z3','Z4','Z5','H1','H2','H3','H4','H5','H6','H9','H7','H8','D1','D2','D3','D4','D5','D6','D7','S1','S2','S3','S4','S5','S6','S7','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14',...NEWIDS,...NEWIDS2,...NEWIDS3];
 function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
 if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
-const VERSION='2026-10-14-b';
+const VERSION='2026-10-15-a';
 const KEY='giladica-v1';
 const DEF={done:{},runs:{},fish:0,log:[],q:{first:{},attempts:{},hints:{},text:{}},exams:[],daily:{streak:0,last:null,done:{}},theme:'light',asg:[],asgRes:[]};
 let S;try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
@@ -693,21 +693,51 @@ function done(){const n=cur.qs.length,first=cur.first;
  if(cur.kind==='exam'){S.exams.unshift({date:new Date().toISOString(),score:first,total:n});S.exams=S.exams.slice(0,20);save();
   window.giladTrack?.milestone('quiz_complete',{correct:first,total:n});
   $.innerHTML='<div class="card" style="text-align:center"><div class="fish">📝</div><h2>סיימת את המבחן!</h2><p><b>'+first+' מתוך '+n+' בניסיון ראשון.</b></p><p>התוצאה נשמרה אצל ההורה. כל תשובה שפספסת תחכה לך בדף התרגול האישי.</p><button class="btn" onclick="home()">למסך הראשי</button></div>';return}
- if(cur.kind==='daily'){const k=dateKey(),answeredOk=cur.res.length&&cur.res[0]>0;
-  if(answeredOk){const y=new Date();y.setDate(y.getDate()-1);S.daily.streak=S.daily.last===dateKey(y)?(S.daily.streak||0)+1:1;S.daily.last=k;S.daily.done[k]=true;save();
-   window.giladTrack?.milestone('daily_complete',{streak:S.daily.streak});
-   $.innerHTML='<div class="card" style="text-align:center"><div class="fish">⭐</div><h2>האתגר היומי הושלם!</h2><p>רצף: <b>'+S.daily.streak+' ימים</b>. חזור מחר לאתגר חדש.</p><button class="btn" onclick="home()">למסך הראשי</button></div>'}
-  else{$.innerHTML='<div class="card" style="text-align:center"><h2>כמעט!</h2><p>האתגר היומי מחכה לך - נסה שוב, הפעם זה יצליח.</p><button class="btn" onclick="openDaily()">נסיון נוסף</button><button class="btn sec" onclick="home()">למסך הראשי</button></div>'}return}
+ if(cur.kind==='daily'){const k=dateKey(),ok10=cur.res.filter(x=>x>0).length,pass=cur.res.length>=10&&ok10>=8;
+  if(pass){const y=new Date();y.setDate(y.getDate()-1);S.daily.streak=S.daily.last===dateKey(y)?(S.daily.streak||0)+1:1;S.daily.last=k;S.daily.done[k]=true;save();
+   window.giladTrack?.milestone('daily_complete',{streak:S.daily.streak,score:ok10,total:10});
+   $.innerHTML='<div class="card" style="text-align:center"><div class="fish">⭐</div><h2>האתגר היומי הושלם!</h2><p><b>'+ok10+' מתוך 10 נכונות.</b> רצף: <b>'+S.daily.streak+' ימים</b>. חזור מחר לאתגר חדש.</p><button class="btn" onclick="home()">למסך הראשי</button></div>'}
+  else{$.innerHTML='<div class="card" style="text-align:center"><h2>כמעט!</h2><p>היו '+ok10+' מתוך 10 נכונות - צריך 8 כדי להאריך את הרצף. נסה שוב, הפעם זה יצליח.</p><button class="btn" onclick="startDaily()">נסיון נוסף</button><button class="btn sec" onclick="home()">למסך הראשי</button></div>'}return}
  /* plan / assignment */
  S.asgRes.unshift({title:cur.title||'מסלול',date:new Date().toISOString(),score:first,total:n});S.asgRes=S.asgRes.slice(0,20);save();
  window.giladTrack?.milestone('plan_complete',{title:cur.title,correct:first,total:n});
  $.innerHTML='<div class="card" style="text-align:center"><div class="fish">💪</div><h2>סיימת: '+esc(cur.title||'המסלול')+'</h2><p><b>'+first+' מתוך '+n+' בניסיון ראשון.</b></p><button class="btn" onclick="home()">למסך הראשי</button></div>'}
-/* ---- daily challenge ---- */
-function dailyRef(){const k=dateKey(),seed=[...k].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);const OLDO=ORDER.filter(id=>!setOf(id).nw);const set=OLDO[seed%OLDO.length];return{set,v:seed%97,i:seed%8}}
+/* ---- daily challenge: 10 adaptive questions ---- */
+function dHash(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
+function dailyRefs(){
+ const k=dateKey(),r=mulberry32(dHash(k)),snap=giladSnap();
+ const needMap=Object.fromEntries(snap.sets.map(x=>[x.id,x.wrong*3+x.tries*2+x.hints]));
+ const bs=snap.sets.filter(x=>x.tr==='B'),bSeen=bs.reduce((a,x)=>a+x.seen,0),bWrong=bs.reduce((a,x)=>a+x.wrong,0);
+ const bBoost=(!bSeen||(bSeen-bWrong)/bSeen<0.85)?2:1;
+ const w=id=>(1+(needMap[id]||0))*(setOf(id).tr==='B'?bBoost:1);
+ const oldIds=ORDER.filter(id=>!setOf(id).nw);
+ const recent=(S.daily.used||[]).filter(x=>x.d!==k).slice(-3).flatMap(x=>x.ids);
+ const fresh=snap.summary.answered===0;
+ let pool=oldIds.filter(id=>!recent.includes(id));if(pool.length<8)pool=oldIds.slice();
+ const take=(arr,n)=>{const out=[];while(out.length<n&&arr.length){let tot=arr.reduce((a,id)=>a+w(id),0),x=r()*tot,i=0;for(;i<arr.length;i++){x-=w(arr[i]);if(x<=0)break}i=Math.min(i,arr.length-1);out.push(arr.splice(i,1)[0])}return out};
+ let oldPick;
+ if(fresh){const u=oldIds.filter(id=>!S.done[id]).slice(0,3);while(u.length<3)u.push(oldIds[u.length]);oldPick=[u[0],u[0],u[1],u[1],u[2],u[2]]}
+ else{
+  const sorted=pool.slice().sort((a,b)=>w(b)-w(a));
+  const focus=sorted.slice(0,2),rest=take(sorted.slice(2),2);
+  oldPick=[focus[0],focus[0],focus[1],focus[1],...rest].filter(Boolean).slice(0,6);
+  while(oldPick.length<6)oldPick.push(pool[Math.floor(r()*pool.length)]);
+ }
+ const newIds=ORDER.filter(id=>setOf(id).nw&&!S.done[id]).slice(0,2);
+ let newPick=newIds.length?[newIds[0],newIds[0],newIds[1]||newIds[0],newIds[1]||newIds[0]]:take(pool.slice(),4);
+ const v=dHash(k)%900;
+ const win=Math.min(3,Math.floor((S.daily.streak||0)/3)),lo=1+win,hi=4+win;
+ const all=[...oldPick.map(id=>({set:id,v,nw:0})),...newPick.map((id,j)=>({set:id,v:(v+j)%900,nw:1}))];
+ all.forEach((x,q)=>{x.i=Math.min(7,lo+Math.floor((hi-lo+1)*q/10));if(x.nw)x.i=Math.min(x.i,lo+1)});
+ const seen={};
+ all.forEach(x=>{const u=seen[x.set]||(seen[x.set]=new Set());while(u.has(x.i))x.i=(x.i+1)%8;u.add(x.i)});
+ all.sort((a,b)=>a.i-b.i);
+ return all;
+}
 function openDaily(){const k=dateKey();
  if(S.daily.done[k]){$.innerHTML='<div class="top"><button class="lnk" onclick="home()">חזרה</button></div><div class="card" style="text-align:center"><div class="fish">⭐</div><h2>האתגר הושלם היום</h2><p>רצף נוכחי: <b>'+S.daily.streak+' ימים</b>. חזור מחר לאתגר חדש.</p><button class="btn sec" onclick="home()">למסך הראשי</button></div>';return}
- $.innerHTML='<div class="top"><button class="lnk" onclick="home()">חזרה</button></div><div class="card" style="text-align:center"><div class="fish">★</div><h2>שאלת האתגר של היום</h2><p>שאלה אחת בלבד. תשובה נכונה מאריכה את הרצף (עכשיו: '+(S.daily.streak||0)+' ימים).</p><button class="btn big" onclick="startDaily()">יאללה</button></div>'}
-function startDaily(){startRefs('האתגר היומי',[dailyRef()],'daily')}
+ $.innerHTML='<div class="top"><button class="lnk" onclick="home()">חזרה</button></div><div class="card" style="text-align:center"><div class="fish">★</div><h2>האתגר היומי</h2><p>10 שאלות ליום, בערך 10 דקות. מתחיל קל ועולה בהדרגה. השאלות נבחרות במיוחד בשבילך: חיזוק מהמבחן האחרון ומהנושאים שמאתגרים אותך, ועוד טעימה מהנושא הבא בתוכנית.<br>8 תשובות נכונות מאריכות את הרצף (עכשיו: '+(S.daily.streak||0)+' ימים).</p><button class="btn big" onclick="startDaily()">יאללה</button></div>'}
+function startDaily(){const refs=dailyRefs();S.daily.used=S.daily.used||[];S.daily.used.push({d:dateKey(),ids:[...new Set(refs.map(x=>x.set))]});S.daily.used=S.daily.used.slice(-10);save();startRefs('האתגר היומי',refs,'daily')}
 /* ---- practice exam: 12 questions across all tracks ---- */
 function openExam(){const s=giladSnap(),refs=[];const used=new Set();
  const needMap=Object.fromEntries(s.sets.map(x=>[x.id,x.wrong*3+x.tries*2+x.hints]));
