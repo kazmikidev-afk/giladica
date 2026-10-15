@@ -144,7 +144,7 @@ const SETS=[
 {id:'B8',tr:'B',n:'משבר לעשרוני',i:'<p>מכיוון ששבר הוא חילוק, כדי לקבל עשרוני מחלקים את המונה במכנה.</p><p>דוגמה: '+F(1,4)+' הוא '+M('1 ÷ 4 = 0.25')+'. עוד דרך: מרחיבים את המכנה ל-10 או ל-100.</p>',g:(R)=>[B.f2d(R,0),B.f2d(R,0),B.f2d(R,0),B.f2d(R,0),B.f2d(R,1),B.f2d(R,1),B.f2d(R,1),B.f2d(R,1)]},
 {id:'B9',tr:'B',n:'מעשרוני לשבר',i:'<p>עשיריות הן שבר עם מכנה 10, ומאיות הן שבר עם מכנה 100. ואחר כך אפשר לצמצם.</p><p>דוגמה: '+M('0.5')+' הוא '+F(5,10)+', וזה אותו דבר כמו '+F(1,2)+'.</p>',g:(R)=>[B.d2f(R,0),B.d2f(R,0),B.d2f(R,0),B.d2f(R,0),B.d2f(R,1),B.d2f(R,1),B.d2f(R,1),B.d2f(R,1)]},
 {id:'B10',tr:'B',n:'חלק מכמות',i:'<p>כדי למצוא חלק מכמות מחלקים במכנה ומכפילים במונה.</p><p>דוגמה: '+F(3,4)+' מ-20: '+M('20 ÷ 4 = 5')+' ואחר כך '+M('5 × 3 = 15')+'.</p>',g:(R)=>[B.part(R,0),B.part(R,0),B.part(R,0),B.part(R,0),B.part(R,1),B.part(R,1),B.part(R,1),B.part(R,1)]},
-{id:'B15',tr:'B',n:'בעיות מילוליות קלות',i:'<p>בבעיות מילוליות קוראים לאט ושואלים: מה מחלקים, ובין כמה? ואז כותבים חילוק.</p>',g:(R)=>[B.share(R,0),B.story(R,0),B.big(R,0),B.share(R,1),B.story(R,1),B.big(R,1),B.pizza1(R,1),B.story(R,1)]},
+{id:'B11',tr:'B',n:'בעיות מילוליות קלות',i:'<p>בבעיות מילוליות קוראים לאט ושואלים: מה מחלקים, ובין כמה? ואז כותבים חילוק.</p>',g:(R)=>[B.share(R,0),B.story(R,0),B.big(R,0),B.share(R,1),B.story(R,1),B.big(R,1),B.pizza1(R,1),B.story(R,1)]},
 {id:'B12',tr:'B',n:'בעיות מילוליות: צעד קדימה',i:'<p>עכשיו התשובה היא לפעמים עשרוני ולפעמים מספר מעורב. כשכתוב מה צורת התשובה, כותבים כך.</p><p>דוגמה: 5 מטר ל-4 חלקים: '+M('5 ÷ 4 = 1.25')+'.</p>',g:(R)=>[B.word2(R,0),B.word3(R,0),B.word2(R,0),B.word3(R,0),B.word2(R,0),B.word3(R,0),B.word2(R,0),B.word3(R,0)]},
 {id:'B13',tr:'B',n:'חזרה מעורבת',i:'<p>סט חזרה על כל מה שלמדנו ביחידה. כל תרגיל מזכיר משהו שכבר עשית.</p>',g:(R)=>[B.quot(R,1),B.toMix(R,0),B.rem(R,0),B.f2d(R,0),B.d2f(R,0),B.part(R,0),B.big(R,1),B.share(R,1)]},
 {id:'B14',tr:'B',n:'סיכום היחידה',i:'<p>הסט האחרון של היחידה. אם משהו מסתבך, הרמזים כאן בשבילך. כל הכבוד על ההגעה לכאן.</p>',g:(R)=>[B.story(R,1),B.toImp(R,0),B.rem(R,1),B.f2d(R,1),B.d2f(R,1),B.part(R,1),B.word2(R,0),B.word3(R,0)]}
@@ -337,7 +337,7 @@ const NS=[
 {id:'S4',tr:'S',n:'כפל שבר בשלם ובמספר מעורב',i:'<p>שלם כפול שבר: מכפילים את השלם במונה והמכנה נשאר. במספר מעורב קודם הופכים לשבר.</p><p>דוגמה: '+M('5 × '+F(2,3)+' = ')+F(10,3)+' = '+MX(3,1,3)+'.</p>',g:R=>[B.fracTimes(R,0),B.fracTimes(R,0),B.fracTimes(R,1),B.fracTimes(R,1),B.mixTimes(R,0),B.mixTimes(R,0),B.mixTimes(R,1),B.mixTimes(R,1)]},
 {id:'S5',tr:'S',n:'שבר כפול שבר',i:'<p>מכפילים מונה במונה ומכנה במכנה. אפשר לצמצם לפני או אחרי.</p><p>דוגמה: '+M(F(2,3)+' × '+F(3,4)+' = ')+F(6,12)+' = '+F(1,2)+'.</p>',g:R=>[B.fracFrac(R,0),B.fracFrac(R,0),B.fracFrac(R,0),B.fracFrac(R,1),B.fracFrac(R,1),B.fracFrac(R,1),B.fracFrac(R,2),B.fracFrac(R,2)]},
 {id:'S6',tr:'S',n:'חלק מכמות: בעיות מילוליות',i:'<p>כדי למצוא שבר מכמות: מחלקים במכנה, מכפילים במונה. כדי למצוא "כמה לא": מחסרים מהכל. ואם שואלים איזה חלק נשאר: כל השלם הוא '+F(5,5)+' (או כמה שהמכנה).</p>',g:R=>[B.twoPart(R,0),B.twoPart(R,0),B.twoPart(R,1),B.twoPart(R,1),B.whatFrac(R,0),B.whatFrac(R,1),B.partWord(R,1),B.divis(R,0)]},
-{id:'S8',tr:'S',n:'חזרה על חיבור וכפל שברים',i:'<p>תרגיל אחד מכל סוג. כל תרגיל מזכיר סט שכבר עשית.</p>',g:R=>[B.addSame(R,2),B.unlike(R,1),B.mixAdd(R,1),B.mixSub(R,1),B.fracTimes(R,1),B.mixTimes(R,1),B.fracFrac(R,1),B.twoPart(R,1)]}
+{id:'S7',tr:'S',n:'חזרה על חיבור וכפל שברים',i:'<p>תרגיל אחד מכל סוג. כל תרגיל מזכיר סט שכבר עשית.</p>',g:R=>[B.addSame(R,2),B.unlike(R,1),B.mixAdd(R,1),B.mixSub(R,1),B.fracTimes(R,1),B.mixTimes(R,1),B.fracFrac(R,1),B.twoPart(R,1)]}
 ];
 SETS.push(...NS);
 
@@ -594,7 +594,7 @@ const NEWSETS3=[
 ].map(s=>(s.nw=1,s));
 SETS.push(...NEWSETS3);
 const NEWIDS3=NEWSETS3.map(s=>s.id);
-const ORDER=['Z1','Z2','Z3','Z4','Z5','H1','H2','H3','H4','H5','H6','H9','H7','H8','D1','D2','D3','D4','D5','D6','D7','S1','S2','S3','S4','S5','S6','S7','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14',...NEWIDS,...NEWIDS2,...NEWIDS3];
+const ORDER=['Z1','Z2','Z3','Z4','Z5','H1','H2','H3','H4','H5','H6','H9','H7','H8','D1','D2','D3','D4','D5','D6','D7','S1','S2','S3','S4','S5','S6','S7','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','B1','B2','B3','B4','A1','A2','B5','B6','A3','A4','B7','B8','A5','A6','B9','B10','A7','A8','B11','B12','A9','B13','B14',...NEWIDS,...NEWIDS2,...NEWIDS3,'T12','D10','H11','B16','S9','Z6'];
 function build(id,variant){const s=SETS.find(x=>x.id===id);const seed=(SETS.indexOf(s)+1)*1000+variant*37+7;return s.g(mk(seed))}
 if(typeof module!=='undefined')module.exports={SETS,ORDER,build,fmt};
 const VERSION='2026-10-15-a';
